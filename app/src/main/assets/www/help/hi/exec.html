@@ -1,0 +1,62 @@
+<div class="body_padded">
+	<h1>Help - Command Injection</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>परिचय (About)</h3>
+		<p>command injection अटैक का उद्देश्य असुरक्षित एप्लीकेशन में अटacker द्वारा बताए गए कमांड्स को इंजेक्ट और एग्जीक्यूट करना है।
+			ऐसी स्थिति में, जो एप्लीकेशन अनचाहे system commands को एग्जीक्यूट करती है, वह एक pseudo system shell की तरह होती है, और अटacker इसका इस्तेमाल 
+			किसी अधिकृत system user की तरह कर सकता है। हालांकि, कमांड्स वही privileges और environment के साथ एग्जीक्यूट होते हैं जो web service के पास होते हैं।</p>
+
+		<p>Command injection attacks ज्यादातर मामलों में सही input data validation की कमी के कारण संभव होते हैं, जिन्हें अटacker द्वारा 
+			मैनिपुलेट किया जा सकता है (फॉर्म्स, cookies, HTTP headers आदि)।</p>
+
+		<p>Operating Systems (OS) जैसे कि Linux और Windows में उनके इच्छित actions के आधार पर syntax और commands अलग-अलग हो सकते हैं।</p>
+
+		<p>इस attack को "Remote Command Execution (RCE)" भी कहा जा सकता है।</p>
+
+		<br /><hr /><br />
+
+		<h3>उद्देश्य (Objective)</h3>
+		<p>RCE के जरिए रिमोटली OS पर web service के user का पता लगाएं, साथ ही machine के hostname का भी पता लगाएं।</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>यह <u>कई PHP functions</u> में से किसी एक में सीधे input की अनुमति देता है जो OS पर commands को एग्जीक्यूट करेंगे। डिज़ाइन किए गए कमांड से बाहर निकलकर
+			अनचाहे actions को एग्जीक्यूट करना संभव है।</p>
+		<p>यह request में यह जोड़कर किया जा सकता है, "एक बार कमांड सफलतापूर्वक एग्जीक्यूट हो जाने के बाद, इस कमांड को रन करें"।
+		<pre>Spoiler (जवाब): <span class="spoiler">To add a command "&&"</span>. Example: <span class="spoiler">127.0.0.1 && dir</span>.</pre>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>डवलपर ने command injection की कुछ समस्याओं के बारे में पढ़ा है, और input को फ़िल्टर करने के लिए अलग-अलग pattern patching लगाई है। हालांकि, यह काफी नहीं है।</p>
+		<p>इच्छित कमांड से बाहर निकलने के लिए अलग-अलग अन्य system syntaxes का उपयोग किया जा सकता है।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">e.g. background the ping command</span>.</pre>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>High level में, डवलपर दोबारा सोच-विचार करता है और मैच करने के लिए और भी ज़्यादा patterns लगाता है। लेकिन यह भी काफी नहीं है।</p>
+		<p>डवलपर से filters में शायद कोई छोटी सी टाइपिंग की गलती हो गई है और उसे लगता है कि एक निश्चित PHP command उसे इस गलती से बचा लेगी।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler"><a href="https://secure.php.net/manual/en/function.trim.php" target="_blank">trim()</a>
+			removes all leading & trailing spaces, right?</span>.</pre>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>Impossible level में, चैलेंज को दोबारा लिखा गया है, ताकि केवल बहुत सख्त input की ही अनुमति मिल सके। यदि यह मैच नहीं होता है और एक निश्चित परिणाम उत्पन्न नहीं करता है,
+			तो इसे एग्जीक्यूट होने की अनुमति नहीं दी जाएगी। "ब्लैक लिस्टिंग" फ़िल्टरिंग (किसी भी input की अनुमति देना और अनचाहे को हटाना) के बजाय, यह "व्हाइट लिस्टिंग" (केवल कुछ निश्चित वैल्यूज़ की अनुमति देना) का उपयोग करता है।</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>संदर्भ (Reference): <a href="https://owasp.org/www-community/attacks/Command_Injection" target="_blank">https://owasp.org/www-community/attacks/Command_Injection</a></p>
+</div>

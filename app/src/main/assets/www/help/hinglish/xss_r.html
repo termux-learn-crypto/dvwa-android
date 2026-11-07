@@ -1,0 +1,56 @@
+<div class="body_padded">
+	<h1>Help - Cross Site Scripting (Reflected)</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>Parichay (About)</h3>
+		<p>"Cross-Site Scripting (XSS)" attacks ek tarah ki injection problem hain, jisme malicious scripts ko aisi websites mein inject kiya jata hai jo normally benign aur trusted hoti hain.
+			XSS attacks tab hote hain jab attacker web application ka use karke malicious code (generally browser side script ke roop mein) kisi doosre end user ko bhejta hai.
+			Aise flaws bohot widespread hain aur wahan milte hain jahan web application user ke input ko bina validate ya encode kiye output mein dikha deti hai.</p>
+
+		<p>Ek attacker XSS ka use karke kisi unsuspecting user ko malicious script bhej sakta hai. End user ke browser ko yeh nahi pata hota ki script par bharosa nahi karna chahiye,
+			aur woh JavaScript ko execute kar deta hai. Kyunki browser ko lagta hai ki script kisi trusted source se aayi hai, isliye yeh malicious script aapke browser mein save
+			aur us site ke sath use hone wale kisi bhi cookies, session tokens, ya doosri sensitive information tak access pa sakti hai. Yeh scripts HTML page ke content ko bhi rewrite kar sakti hain.</p>
+
+		<p>Kunki yeh ek reflected XSS hai, isliye malicious code remote web application mein stored nahi hota, isiliye iske liye thodi social engineering (jaise email ya chat ke zariye link bhejna) ki zarurat padti hai.</p>
+
+		<br /><hr /><br />
+
+		<h3>Objective (lakshya)</h3>
+		<p>Jaise-tise karke, logged in user ki cookie chori karein.</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>Low level par requested input ko output text mein use karne se pehle check nahi kiya jata.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">?name=&lt;script&gt;alert("XSS");&lt;/script&gt;</span>.</pre>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>Developer ne JavaScript ko disable karne ke liye "&lt;script&gt;" ke sabhi references ko hatane ke liye ek simple pattern matching add karne ki koshish ki hai.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">Its cAse sENSiTiVE</span>.</pre>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>Developer ko ab lagta hai ki woh "&lt;s*c*r*i*p*t" pattern ko hata kar sabhi JavaScript ko disable kar sakte hain.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">HTML events</span>.</pre>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>Inbuilt PHP functions (jaise "<a href="https://secure.php.net/manual/en/function.htmlspecialchars.php" target="_blank">htmlspecialchars()</a>") ka use karke,
+			un sabhi values ko escape karna possible hai jo input ke behavior ko badal sakti hain.</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>Reference: <a href="https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)" target="_blank">https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)</a></p>
+</div>

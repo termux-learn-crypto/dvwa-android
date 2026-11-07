@@ -1,0 +1,57 @@
+<div class="body_padded">
+	<h1>Help - Cross Site Scripting (DOM Based)</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>परिचय (About)</h3>
+		<p>"Cross-Site Scripting (XSS)" हमले एक प्रकार की इंजेक्शन समस्या हैं, जिनमें किसी सामान्य और भरोसेमंद वेबसाइट में मैलिशियस स्क्रिप्ट्स को इन्जेक्ट कर दिया जाता है।
+			XSS हमले तब होते हैं जब कोई हमलावर किसी वेब एप्लिकेशन का उपयोग करके किसी दूसरे एंड-यूज़र को मैलिशियस कोड भेजता है, जो आमतौर पर ब्राउज़र-साइड स्क्रिप्ट के रूप में होता है।
+			इन हमलों को सफल बनाने वाली खामियां काफी व्यापक हैं और वहां पाई जाती हैं जहां कोई वेब एप्लिकेशन यूज़र से मिले इनपुट को बिना वैलिडेट या एन्कोड किए सीधे आउटपुट में उपयोग करता है।</p>
+
+		<p>एक हमलावर किसी अनजान यूज़र को मैलिशियस स्क्रिप्ट भेजने के लिए XSS का उपयोग कर सकता है। एंड-यूज़र के ब्राउज़र को यह पता नहीं होता कि स्क्रिप्ट पर भरोसा नहीं किया जाना चाहिए,
+			और वह उस JavaScript को एक्सेक्यूूटे (execute) कर देगा। चूंकि ब्राउज़र को लगता है कि स्क्रिप्ट किसी भरोसेमंद स्रोत से आई है, इसलिए वह मैलिशियस स्क्रिप्ट आपके ब्राउज़र में मौजूद
+			और उस साइट के साथ उपयोग होने वाले किसी भी cookie, session token या अन्य संवेदनशील जानकारी तक पहुंच सकती है। ये स्क्रिप्ट्स HTML पेज के कंटेंट को भी बदल सकती हैं।</p>
+
+		<p>DOM Based XSS, reflected XSS का ही एक विशेष मामला है, जिसमें JavaScript यूज़र की URL में छिपी होती है और पेज रेंडर होने के दौरान पेज के अंदर मौजूद JavaScript द्वारा निकाली जाती है, न कि सर्वर से पेज मिलने पर उसमें एम्बेड होती है। इससे यह अन्य हमलों की तुलना में और अधिक छिपकर हो सकता है, और WAF या अन्य सुरक्षा उपाय जो पेज के बॉडी को पढ़ते हैं, उन्हें कोई भी मैलिशियस कंटेंट दिखाई नहीं देता।</p>
+
+		<p><hr /></p>
+
+		<h3>उद्देश्य (Objective)</h3>
+		<p>किसी अन्य यूज़र के ब्राउज़र में अपनी खुद की JavaScript चलाएं, और इसका उपयोग करके लॉग-इन किए गए यूज़र का cookie चुराएं।</p>
+
+		<p><hr /></p>
+
+		<h3>Low Level</h3>
+		<p>Low लेवल अनुरोधित इनपुट को आउटपुट टेक्स्ट में उपयोग करने से पहले उसकी जांच नहीं करेगा।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler"><?=htmlentities ("/vulnerabilities/xss_d/?default=English<script>alert(1)</script>")?></span>.</pre>
+
+		<p><br /></p>
+
+		<h3>Medium Level</h3>
+		<p>डेवलपर ने किसी भी JavaScript को अक्षम करने के लिए "&lt;script" के सभी संदर्भों को हटाने के वास्ते एक साधारण पैटर्न मैचिंग जोड़ने का प्रयास किया है। script टैग का उपयोग किए बिना JavaScript चलाने का कोई तरीका खोजें।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">You must first break out of the select block then you can add an image with an onerror event:<br />
+<?=htmlentities ("/vulnerabilities/xss_d/?default=English>/option></select><img src='x' onerror='alert(1)'>");?></span>.</pre>
+
+		<p><br /></p>
+
+		<h3>High Level</h3>
+		<p>डेवलपर अब केवल अनुमति प्राप्त (allowed) भाषाओं को ही व्हाइटलिस्ट कर रहा है, आपको बिना सर्वर पर गए अपना कोड चलाने का कोई तरीका खोजना होगा।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">The fragment section of a URL (anything after the # symbol) does not get sent to the server and so cannot be blocked. The bad JavaScript being used to render the page reads the content from it when creating the page.<br />
+<?=htmlentities ("/vulnerabilities/xss_d/?default=English#<script>alert(1)</script>")?></span>.</pre>
+
+		<p><br /></p>
+
+		<h3>Impossible Level</h3>
+		<p>URL से लिए गए कंटेंट को अधिकांश ब्राउज़रों द्वारा डिफ़ॉल्ट रूप से एन्कोड किया जाता है जो किसी भी इन्जेक्टेड JavaScript को एक्सेक्यूूटे होने से रोकता है।</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>संदर्भ (Reference): <a href="https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)" target="_blank">https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)</a></p>
+</div>

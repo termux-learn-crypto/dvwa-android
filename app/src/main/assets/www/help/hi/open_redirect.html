@@ -1,0 +1,57 @@
+<div class="body_padded">
+	<h1>Help - Open HTTP Redirect</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>परिचय (About)</h3>
+		<p>
+		OWASP इसे इस प्रकार परिभाषित करता है:
+		</p>
+		<blockquote cite="https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html">
+			Unvalidated redirects and forwards are possible when a web application accepts untrusted input that could cause the web application to redirect the request to a URL contained within untrusted input. By modifying untrusted URL input to a malicious site, an attacker may successfully launch a phishing scam and steal user credentials.
+		</blockquote>
+
+		<p>जैसा कि ऊपर सुझाया गया है, इसका एक आम उपयोग एक ऐसा URL बनाना है जो शुरू में असली साइट पर जाता है लेकिन फिर पीड़ित को किसी ऐसी साइट पर रीडायरेक्ट कर देता है जो हमलावर के नियंत्रण में होती है। यह साइट क्रेडेंशियल्स चुराने के लिए टारगेट के लॉगिन पेज का क्लोन हो सकती है, टारगेट साइट पर किसी सर्विस के भुगतान के लिए क्रेडिट कार्ड विवरण का अनुरोध, या विज्ञापनों से भरा एक सामान्य स्पैम पेज हो सकता है।</p>
+
+		<br /><hr /><br />
+
+		<h3>उद्देश्य (Objective)</h3>
+		<p>यूज़र को DVWA साइट से बाहर ले जाने के लिए या साइट पर किसी अन्य अपेक्षित पेज के बजाय किसी अलग पेज पर ले जाने के लिए रीडायरेक्ट पेज का दुरुपयोग करें।</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>रीडायरेक्ट पेज पर कोई सीमाएं नहीं हैं, आप चाहें जहाँ रीडायरेक्ट कर सकते हैं।</p>
+		<p>Spoiler (जवाब): <span class="spoiler">Try browsing to /vulnerabilities/open_redirect/source/low.php?redirect=https://digi.ninja</span></p>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>यह कोड आपको यूज़र को साइट से बाहर ले जाने के लिए absolute URL का उपयोग करने से रोकता है, इसलिए आप यूज़र को उसी साइट के अन्य पेजों पर ले जाने के लिए relative URL या किसी <a href="https://en.wikipedia.org/wiki/Wikipedia:Protocol-relative_URL" target="_blank">Protocol-relative URL</a> का उपयोग कर सकते हैं।</p>
+
+		<p>Spoiler (जवाब): <span class="spoiler">Try browsing to /vulnerabilities/open_redirect/source/low.php?redirect=//digi.ninja</span></p>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>रीडायरेक्ट पेज आपको केवल info.php पेज पर रीडायरेक्ट करने के लिए लॉक करने की कोशिश करता है, लेकिन यह जाँच करके ऐसा करता है कि URL में "info.php" शामिल है या नहीं।</p>
+
+		<p>Spoiler (जवाब): <span class="spoiler">Try browsing to /vulnerabilities/open_redirect/source/low.php?redirect=https://digi.ninja/?a=info.php</span></p>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>रीडायरेक्ट टारगेट के रूप में कोई पेज या URL स्वीकार करने के बजाय, सिस्टम रीडायरेक्ट पेज को यह बताने के लिए ID वैल्यू का उपयोग करता है कि कहाँ रीडायरेक्ट करना है। यह सिस्टम को केवल उन पेजों पर रीडायरेक्ट करने के लिए बांधता है जिन्हें वह जानता है और इसलिए हमलावर के लिए अपनी पसंद के पेज पर जाने के लिए चीज़ों को संशोधित करने का कोई तरीका नहीं होता है।</p>
+
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>संदर्भ (Reference): <a href="https://en.wikipedia.org/wiki/Password_cracking" target="_blank">https://en.wikipedia.org/wiki/Password_cracking</a></p>
+</div>

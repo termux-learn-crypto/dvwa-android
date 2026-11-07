@@ -1,0 +1,56 @@
+<div class="body_padded">
+	<h1>Help - Cross Site Scripting (Reflected)</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>परिचय (About)</h3>
+		<p>"Cross-Site Scripting (XSS)" हमले एक प्रकार की इंजेक्शन समस्या हैं, जिनमें दुर्भावनापूर्ण स्क्रिप्ट्स को सामान्य और विश्वसनीय वेब साइटों में डाल दिया जाता है।
+			XSS हमले तब होते हैं जब कोई हमलावर किसी वेब एप्लिकेशन का उपयोग करके किसी अन्य अंत-उपयोगकर्ता को दुर्भावनापूर्ण कोड, आमतौर पर ब्राउज़र-साइड स्क्रिप्ट के रूप में, भेजता है।
+			इन हमलों को सफल बनाने वाली खामियां काफी व्यापक हैं और वहां पाई जाती हैं जहाँ कोई वेब एप्लिकेशन उपयोगकर्ता से मिले इनपुट को बिना सत्यापित (validate) या एन्कोड किए आउटपुट में उपयोग करता है।</p>
+
+		<p>एक हमलावर किसी अनजान उपयोगकर्ता को दुर्भावनापूर्ण स्क्रिप्ट भेजने के लिए XSS का उपयोग कर सकता है। अंत-उपयोगकर्ता के ब्राउज़र के पास यह जानने का कोई तरीका नहीं होता कि स्क्रिप्ट पर भरोसा नहीं किया जाना चाहिए,
+			और वह JavaScript को निष्पादित (execute) कर देगा। चूंकि उसे लगता है कि स्क्रिप्ट किसी विश्वसनीय स्रोत से आई है, इसलिए दुर्भावनापूर्ण स्क्रिप्ट आपके ब्राउज़र द्वारा सुरक्षित रखे गए और उस साइट के साथ उपयोग किए जाने वाले किसी भी कुकी (cookie), सेशन टोकन (session token), या अन्य संवेदनशील जानकारी तक पहुंच सकती है।
+			ये स्क्रिप्ट्स HTML पेज की सामग्री को भी बदल सकती हैं।</p>
+
+		<p>चूंकि यह एक reflected XSS है, इसलिए दुर्भावनापूर्ण कोड दूरस्थ (remote) वेब एप्लिकेशन में संग्रहीत (store) नहीं होता है, इसलिए इसके लिए कुछ सोशल इंजीनियरिंग (जैसे ईमेल/चैट के माध्यम से लिंक) की आवश्यकता होती है।</p>
+
+		<br /><hr /><br />
+
+		<h3>उद्देश्य (Objective)</h3>
+		<p>किसी भी तरह से, लॉग इन किए गए उपयोगकर्ता की कुकी (cookie) चुराएं।</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>Low level अनुरोधित इनपुट को आउटपुट टेक्स्ट में शामिल करने से पहले उसकी जांच नहीं करेगा।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">?name=&lt;script&gt;alert("XSS");&lt;/script&gt;</span>.</pre>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>डेलवपर ने किसी भी JavaScript को अक्षम (disable) करने के लिए "&lt;script&gt;" के सभी संदर्भों को हटाने हेतु एक साधारण पैटर्न मिलान (pattern matching) जोड़ने का प्रयास किया है।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">Its cAse sENSiTiVE</span>.</pre>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>डेलवपर अब मानता है कि वह पैटर्न "&lt;s*c*r*i*p*t" को हटाकर सभी JavaScript को अक्षम कर सकता है।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">HTML events</span>.</pre>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>अंतर्निहित PHP फ़ंक्शन (जैसे कि "<a href="https://secure.php.net/manual/en/function.htmlspecialchars.php" target="_blank">htmlspecialchars()</a>") का उपयोग करके,
+			किसी भी ऐसे मान को एस्केप (escape) करना संभव है जो इनपुट के व्यवहार को बदल सकता है।</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>संदर्भ (Reference): <a href="https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)" target="_blank">https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)</a></p>
+</div>

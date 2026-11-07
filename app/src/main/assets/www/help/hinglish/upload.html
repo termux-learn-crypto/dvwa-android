@@ -1,0 +1,52 @@
+<div class="body_padded">
+	<h1>Help - File Upload</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>Parichay (About)</h3>
+		<p>Uploaded files web applications ke liye kaafi bada risk represent karte hain. Bahut saare attacks ka pehla step ye hota hai ki target system par kuch code pahunchaya jaaye.
+			Fir attacker ko bas aisa tareeqa dhoondhna hota hai jisse wo code execute ho jaaye. File upload ka use karke attacker apna pehla step aasaani se complete kar leta hai.</p>
+
+		<p>Unrestricted file upload ke consequences kuch bhi ho sakte hain, jaise poore system ka takeover, file system overload ho jana, backend systems par attacks forward karna,
+			aur simple defacement. Ye is baat par depend karta hai ki application uploaded file ke sath kya karta hai, aur use kahan store kiya jata hai.</p>
+
+		<br /><hr /><br />
+
+		<h3>Objective (lakshya)</h3>
+		<p>Is file upload vulnerability ka use karke target system par apni marzi ka koi bhi PHP function execute karein (jaise <a href="https://secure.php.net/manual/en/function.phpinfo.php" target="_blank">phpinfo()</a>
+			ya <a href="https://secure.php.net/manual/en/function.system.php" target="_blank">system()</a>).</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>Low level mein upload kiye ja rahe file ke contents ko kisi bhi tarah se check nahi kiya jata. Ye sirf trust par kaam karta hai.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">Upload any valid PHP file with command in it</span>.</pre>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>Medium level use karte waqt, ye upload hone ke time client ki taraf se bhejhe gaye reported file type ko check karta hai.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">Worth looking for any restrictions within any "hidden" form fields</span>.</pre>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>Jaise hi client se file receive ho jaati hai, server request mein included kisi bhi image ko resize karne ki koshish karta hai.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">need to link in another vulnerability, such as file inclusion</span>.</pre>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>Ye abhi tak ke sabhi levels ki cheezein check karega, aur sath hi image ko re-encode bhi karega. Isse ek nayi image banegi, jisse saara "non-image" code (metadata samet) hat jayega.</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>Reference: <a href="https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload" target="_blank">https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload</a></p>
+</div>

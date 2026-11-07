@@ -1,0 +1,61 @@
+<div class="body_padded">
+	<h1>Help - SQL Injection (Blind)</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>Parichay (About)</h3>
+		<p>Jab ek attacker SQL Injection attack execute karta hai, toh kabhi-kabhi server database server ke error messages ke sath respond karta hai jo yeh kehte hain ki SQL query ki syntax galat hai.
+			Blind SQL Injection normal SQL Injection jaisi hi hoti hai bas farq yeh hota hai ki jab attacker application ko exploit karne ki koshish karta hai, toh ek useful error message milne ke bajaye,
+			use developer dwara banaya gaya ek generic page milta hai. Isse potential SQL Injection attack ko exploit karna thoda mushkil ho jata hai par namumkin nahi.
+			Attacker SQL statements ke through True aur False sawal pooch kar aur web application ke response ko monitor karke (valid entry return hui ya 404 header set hua) aaj bhi data chura sakta hai.</p>
+
+		<p>"Time based" injection method aksar tab use kiya jata hai jab page ke response mein koi visible feedback nahi milta ki woh kaise alag hai (isliye yeh ek blind attack hai).
+		 	Iska matlab yeh hai ki attacker yeh dekhega ki page ko response wapas karne mein kitna samay lagta hai. Agar normal se zyada time lagta hai, toh unki query successful thi.</p>
+
+		<br /><hr /><br />
+
+		<h3>Objective (lakshya)</h3>
+		<p>Blind SQL attack ke zariye SQL database software ka version pata karein.</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>SQL query RAW input ka use karti hai jo seedhe attacker ke control mein hota hai. Unhe bas query ko escape karna hota hai aur fir woh
+			chahein jo SQL query execute kar sakte hain.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">?id=1' AND sleep 5&Submit=Submit</span>.</pre>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>Medium level mein SQL injection protection ke ek tarike ka use kiya gaya hai, jisme
+			"<a href="https://secure.php.net/manual/en/function.mysql-real-escape-string.php" target="_blank">mysql_real_escape_string()</a>" function ka use hota hai.
+			Lekin SQL query mein parameter ke aas-paas quotes na hone ki wajah se, yeh query ko badalne se poori tarah protect nahi kar payega.</p>
+
+		<p>Text box ko ek pre-defined dropdown list se replace kar diya gaya hai aur form submit karne ke liye POST ka use hota hai.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">?id=1 AND sleep 3&Submit=Submit</span>.</pre>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>Yeh low level se kafi milti-julti hai, par is baar attacker alag tareeqe se value input kar raha hai.
+			Input values GET request ke bajaye ek alag page par set ki ja rahi hain.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">ID: 1' AND sleep 10&Submit=Submit</span>.
+			Spoiler (jawab): <span class="spoiler">Should be able to cut out the middle man.</span>.</pre>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>Queries ab parameterized queries hain (dynamic hone ke bajaye). Iska matlab hai ki query developer dwara define ki gayi hai,
+			aur yeh distinguish karti hai ki kaunsa hissa code hai aur baaki ka data hai.</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>Reference: <a href="https://owasp.org/www-community/attacks/Blind_SQL_Injection" target="_blank">https://owasp.org/www-community/attacks/Blind_SQL_Injection</a></p>
+</div>

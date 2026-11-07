@@ -1,0 +1,54 @@
+<div class="body_padded">
+	<h1>Help - Cross Site Scripting (Stored)</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<p>"Cross-Site Scripting (XSS)" attacks ek tarah ki injection problem hain, jismein malicious scripts ko normally safe aur trusted websites ke andar inject kar diya jata hai.
+			XSS attacks tab hote hain jab ek attacker web application ka use karke koi malicious code, jo zyadatar browser side script ke form mein hota hai,
+			kisi doosre end user ko bhejta hai. Yeh flaws jo in attacks ko successful hone dete hain, kaafi widespread hain aur wahan aate hain jahan web application user se aaye input ko output mein bina validate ya encode kiye use kar leta hai.</p>
+
+		<p>Ek attacker XSS ka use karke kisi unsuspecting user ko malicious script bhej sakta hai. End user ke browser ko yeh nahi pata hota ki script par bharosa nahi karna chahiye,
+			aur woh us JavaScript ko execute kar deta hai. Kyunki use lagta hai ki script kisi trusted source se aayi hai, isliye woh malicious script aapke browser mein stored kisi bhi cookies, session tokens, ya doosri sensitive information ko access kar sakti hai jo us site ke sath use hoti hai. Yeh scripts HTML page ke content ko bhi rewrite kar sakti hain.</p>
+
+		<p>Yeh XSS database ke andar stored hota hai. XSS tab tak permanent rehta hai jab tak database reset na ho jaye ya payload ko manually delete na kar diya jaye.</p>
+
+		<br /><hr /><br />
+
+		<h3>Objective (lakshya)</h3>
+		<p>Sabhi users ko apni pasand ki kisi web page par redirect karein.</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>Low level mein requested input ko output text mein include karne se pehle bilkul check nahi kiya jata.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">Either name or message field: &lt;script&gt;alert("XSS");&lt;/script&gt;</span>.</pre>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>Developer ne thodi protection add ki hai, lekin sabhi fields par same tarike se implementation nahi kiya hai.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">name field: &lt;sCriPt&gt;alert("XSS");&lt;/sCriPt&gt;</span>.</pre>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>Developer ko lagta hai ki unhone "&lt;s*c*r*i*p*t" pattern ko remove karke sabhi scripts ka use disable kar diya hai.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">HTML events</span>.</pre>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>Inbuilt PHP functions (jaise ki "<a href="https://secure.php.net/manual/en/function.htmlspecialchars.php" target="_blank">htmlspecialchars()</a>") ka use karke,
+			un sabhi values ko escape karna possible hai jo input ke behaviour ko change kar sakti hain.</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>Reference: <a href="https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)" target="_blank">https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)</a></p>
+</div>

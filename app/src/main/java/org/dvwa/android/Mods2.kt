@@ -37,38 +37,38 @@ object UploadPage : Page() {
         val name = File(name0).name
         val ext = name.substringAfterLast('.', "").lowercase()
         val target = "../../hackable/uploads/$name"
-        val notImg = "Your image was not uploaded. We can only accept JPEG or PNG images."
+        val notImg = tr("Your image was not uploaded. We can only accept JPEG or PNG images.")
         when (lv) {
             "low" -> {}
             "medium" -> if (!((type == "image/jpeg" || type == "image/png") && data.size < 100000)) return false to notImg
             "high" -> if (!((ext == "jpg" || ext == "jpeg" || ext == "png") && data.size < 100000 && isImage(data))) return false to notImg
             "impossible" -> {
                 if (!((ext == "jpg" || ext == "jpeg" || ext == "png") && data.size < 100000 && (type == "image/jpeg" || type == "image/png") && isImage(data))) return false to notImg
-                val bmp = BitmapFactory.decodeByteArray(data, 0, data.size) ?: return false to "Your image was not uploaded."
+                val bmp = BitmapFactory.decodeByteArray(data, 0, data.size) ?: return false to tr("Your image was not uploaded.")
                 // re-encode the image (strips any appended code), random file name
                 val newName = U.md5(U.phpUniqid() + name) + "." + ext
                 val bos = ByteArrayOutputStream()
                 bmp.compress(if (type == "image/jpeg") Bitmap.CompressFormat.JPEG else Bitmap.CompressFormat.PNG, 90, bos)
                 File(dir(), newName).writeBytes(bos.toByteArray())
-                return true to "$newName succesfully uploaded!"
+                return true to tr("{0} succesfully uploaded!", newName)
             }
         }
-        return try { File(dir(), name).writeBytes(data); true to "$target succesfully uploaded!" } catch (e: Exception) { false to "Your image was not uploaded." }
+        return try { File(dir(), name).writeBytes(data); true to tr("{0} succesfully uploaded!", target) } catch (e: Exception) { false to tr("Your image was not uploaded.") }
     }
 
     override fun build(ui: Ui, f: PageFragment) {
         val lv = level
         var picked: ByteArray? = null
-        val c = ui.card("Choose an image to upload")
-        val chosen = c.p("No file chosen.")
-        val t = c.tamper("🛠 Intercept & tamper (filename, Content-Type, body)")
+        val c = ui.card(tr("Choose an image to upload"))
+        val chosen = c.p(tr("No file chosen."))
+        val t = c.tamper(tr("🛠 Intercept & tamper (filename, Content-Type, body)"))
         val fname = t.field("filename=", "")
         val ctype = t.field("Content-Type:", "")
-        t.p("Or compose the file body yourself (used when no file is chosen):")
-        val body = t.field("File body", "<?php system(\$_GET['cmd']); ?>", multiline = true)
-        val magic = t.check("Prepend GIF89a magic bytes (fools getimagesize)")
+        t.p(tr("Or compose the file body yourself (used when no file is chosen):"))
+        val body = t.field(tr("File body"), "<?php system(\$_GET['cmd']); ?>", multiline = true)
+        val magic = t.check(tr("Prepend GIF89a magic bytes (fools getimagesize)"))
         val tok = Tok(t, lv == "impossible")
-        c.button("Choose file…", outlined = true) {
+        c.button(tr("Choose file…"), outlined = true) {
             f.pickFile { uri: Uri? ->
                 if (uri == null) return@pickFile
                 val cr = f.requireContext().contentResolver
@@ -76,11 +76,11 @@ object UploadPage : Page() {
                 cr.query(uri, null, null, null, null)?.use { cur -> if (cur.moveToFirst()) { val i = cur.getColumnIndex(OpenableColumns.DISPLAY_NAME); if (i >= 0) name = cur.getString(i) ?: name } }
                 picked = try { cr.openInputStream(uri)?.use { it.readBytes().let { b -> if (b.size > 2_000_000) b.copyOf(2_000_000) else b } } } catch (e: Exception) { null }
                 fname.setText(name); ctype.setText(cr.getType(uri) ?: "application/octet-stream")
-                chosen.text = "Chosen: $name (${picked?.size ?: 0} bytes)"
+                chosen.text = tr("Chosen: {0} ({1} bytes)", name, picked?.size ?: 0)
             }
         }
         val res = c.result()
-        c.button("Upload") { b ->
+        c.button(tr("Upload")) { b ->
             var data = picked ?: body.str().toByteArray(Charsets.ISO_8859_1)
             if (magic.isChecked) data = "GIF89a;\n".toByteArray() + data
             val n = fname.str().ifEmpty { "shell.php" }
@@ -96,8 +96,8 @@ object UploadPage : Page() {
             }
         }
 
-        val w = ui.card("Request an uploaded file (/hackable/uploads/)")
-        w.p("Simulates browsing to the uploaded file. Files with a PHP extension are executed by the built-in webshell simulator (echo, system(), shell_exec(), passthru(), exec(), phpinfo() with \$_GET/\$_POST/\$_REQUEST parameters) against the fake shell. Other files are served as-is.")
+        val w = ui.card(tr("Request an uploaded file (/hackable/uploads/)"))
+        w.p(tr("Simulates browsing to the uploaded file. Files with a PHP extension are executed by the built-in webshell simulator (echo, system(), shell_exec(), passthru(), exec(), phpinfo() with \$_GET/\$_POST/\$_REQUEST parameters) against the fake shell. Other files are served as-is."))
         val url = w.field("URL", "/hackable/uploads/shell.php?cmd=id")
         val wr = w.result()
         val list = w.container()
@@ -105,32 +105,32 @@ object UploadPage : Page() {
             list.removeAllViews()
             val files = dir().listFiles()?.sortedBy { it.name } ?: listOf()
             val lu = Ui(f.requireContext(), list)
-            lu.p(if (files.isEmpty()) "(no uploads yet)" else "Uploaded: " + files.joinToString(", ") { it.name })
+            lu.p(if (files.isEmpty()) tr("(no uploads yet)") else tr("Uploaded: ") + files.joinToString(", ") { it.name })
         }
         refreshList()
-        w.button("Request") { b ->
+        w.button(tr("Request")) { b ->
             val u = url.str()
             Bg.run(b) {
                 wr.clear()
                 val path = u.replace(Regex("^https?://[^/]+"), "").substringBefore('?')
                 val name = path.substringAfter("/hackable/uploads/", "")
                 val file = File(dir(), name)
-                if (name.isEmpty() || name.contains("..") || !file.isFile) { wr.err("404 Not Found\nThe requested URL was not found on this server."); return@run }
+                if (name.isEmpty() || name.contains("..") || !file.isFile) { wr.err(tr("404 Not Found\nThe requested URL was not found on this server.")); return@run }
                 val ext = name.substringAfterLast('.', "").lowercase()
                 val data = file.readBytes()
                 if (ext in phpExt) {
                     val out = app.os.runPhp(String(data, Charsets.ISO_8859_1), U.parseQuery(u.substringAfter('?', "")))
-                    wr.warn("⚠ Server executed $name as PHP (simulated webshell)")
-                    wr.pre(out.ifEmpty { "(empty response)" })
+                    wr.warn(tr("⚠ Server executed {0} as PHP (simulated webshell)", name))
+                    wr.pre(out.ifEmpty { tr("(empty response)") })
                 } else {
                     val bmp = BitmapFactory.decodeByteArray(data, 0, data.size)
                     if (bmp != null) wr.bitmap(bmp) else wr.pre(String(data, Charsets.ISO_8859_1).take(20000))
-                    wr.info("Served as a static file (Apache would not execute .$ext). Tip: include it with File Inclusion.")
+                    wr.info(tr("Served as a static file (Apache would not execute .{0}). Tip: include it with File Inclusion.", ext))
                 }
             }
             refreshList()
         }
-        w.button("Refresh list", outlined = true) { refreshList() }
+        w.button(tr("Refresh list"), outlined = true) { refreshList() }
     }
 }
 
@@ -166,21 +166,21 @@ object CaptchaPage : Page() {
 
     override fun build(ui: Ui, f: PageFragment) {
         val lv = level
-        val c = ui.card("Change your password:")
-        val cur = if (lv == "impossible") c.field("Current password", password = true) else null
-        val n = c.field("New password", password = true)
-        val cf = c.field("Confirm new password", password = true)
+        val c = ui.card(tr("Change your password:"))
+        val cur = if (lv == "impossible") c.field(tr("Current password"), password = true) else null
+        val n = c.field(tr("New password"), password = true)
+        val cf = c.field(tr("Confirm new password"), password = true)
         val img = ImageView(f.requireContext())
         c.root.addView(img, LinearLayout.LayoutParams(c.dp(240), c.dp(72)))
         fun refresh() { img.setImageBitmap(draw(newCaptcha())) }
         refresh()
-        val ans = c.field("Type the characters above (g-recaptcha-response)")
-        c.button("New CAPTCHA", outlined = true) { refresh() }
+        val ans = c.field(tr("Type the characters above (g-recaptcha-response)"))
+        c.button(tr("New CAPTCHA"), outlined = true) { refresh() }
         val t = c.tamper()
-        val step = if (lv == "low" || lv == "medium") t.field("step (hidden)", "1") else null
-        val passed = if (lv == "medium") t.field("passed_captcha (hidden, only sent by the step-2 form)", "") else null
-        val ua = t.field("User-Agent header", "Mozilla/5.0 (Linux; Android) DVWA-Native")
-        val ovr = t.field("Override g-recaptcha-response (leave empty to use the box above)", "")
+        val step = if (lv == "low" || lv == "medium") t.field(tr("step (hidden)"), "1") else null
+        val passed = if (lv == "medium") t.field(tr("passed_captcha (hidden, only sent by the step-2 form)"), "") else null
+        val ua = t.field(tr("User-Agent header"), "Mozilla/5.0 (Linux; Android) DVWA-Native")
+        val ovr = t.field(tr("Override g-recaptcha-response (leave empty to use the box above)"), "")
         val tok = Tok(t, lv == "impossible")
         val res = c.result()
 
@@ -193,42 +193,42 @@ object CaptchaPage : Page() {
                     when (lv) {
                         "low", "medium" -> {
                             if (p["step"] == "1") {
-                                if (!check(p["g-recaptcha-response"] ?: "")) { res.err("The CAPTCHA was incorrect. Please try again."); img.post { refresh() }; return@run }
+                                if (!check(p["g-recaptcha-response"] ?: "")) { res.err(tr("The CAPTCHA was incorrect. Please try again.")); img.post { refresh() }; return@run }
                                 if (new == conf) {
-                                    res.ok("You passed the CAPTCHA! Click the button to confirm your changes.")
+                                    res.ok(tr("You passed the CAPTCHA! Click the button to confirm your changes."))
                                     res.custom { u ->
-                                        u.button("Change (confirm, step 2)") { b2 ->
+                                        u.button(tr("Change (confirm, step 2)")) { b2 ->
                                             val p2 = linkedMapOf("step" to "2", "password_new" to new, "password_conf" to conf, "Change" to "Change")
                                             if (lv == "medium") p2["passed_captcha"] = "true"
                                             submit(b2, p2, userAgent)
                                         }
                                     }
-                                } else res.err(if (lv == "low") "Both passwords must match." else "Both passwords must match.")
+                                } else res.err(if (lv == "low") tr("Both passwords must match.") else tr("Both passwords must match."))
                             } else if (p["step"] == "2") {
-                                if (lv == "medium" && (p["passed_captcha"].isNullOrEmpty() || p["passed_captcha"] == "0")) { res.err("You have not passed the CAPTCHA."); return@run }
+                                if (lv == "medium" && (p["passed_captcha"].isNullOrEmpty() || p["passed_captcha"] == "0")) { res.err(tr("You have not passed the CAPTCHA.")); return@run }
                                 if (new == conf) {
                                     db.vulnExec("UPDATE `users` SET password = '${U.md5(U.esc(new))}' WHERE user = '$user';")
-                                    res.ok("Password Changed.")
-                                } else res.err("Passwords did not match.")
+                                    res.ok(tr("Password Changed."))
+                                } else res.err(tr("Passwords did not match."))
                             }
                         }
                         "high" -> {
                             val r = p["g-recaptcha-response"] ?: ""
                             if (check(r) || (r == "hidd3n_valu3" && userAgent == "reCAPTCHA")) {
-                                if (new == conf) { db.vulnExec("UPDATE `users` SET password = '${U.md5(U.esc(new))}' WHERE user = '$user';"); res.ok("Password Changed.") }
-                                else res.err("Both passwords must match.")
-                            } else res.err("The CAPTCHA was incorrect. Please try again.")
+                                if (new == conf) { db.vulnExec("UPDATE `users` SET password = '${U.md5(U.esc(new))}' WHERE user = '$user';"); res.ok(tr("Password Changed.")) }
+                                else res.err(tr("Both passwords must match."))
+                            } else res.err(tr("The CAPTCHA was incorrect. Please try again."))
                             tok.refresh()
                         }
                         else -> {
                             if (!tok.valid(p["user_token"] ?: "")) { res.err(TOKEN_FAIL); tok.refresh(); return@run }
                             val pn = U.md5(U.esc(U.stripslashes(new))); val pc = U.md5(U.esc(U.stripslashes(conf)))
                             val pcur = U.md5(U.esc(U.stripslashes(p["password_current"] ?: "")))
-                            if (!check(p["g-recaptcha-response"] ?: "")) res.err("The CAPTCHA was incorrect. Please try again.")
+                            if (!check(p["g-recaptcha-response"] ?: "")) res.err(tr("The CAPTCHA was incorrect. Please try again."))
                             else {
                                 val d = db.prepared("SELECT password FROM users WHERE user = ? AND password = ? LIMIT 1;", user, pcur)
-                                if (pn == pc && d.size == 1) { db.preparedExec("UPDATE users SET password = ? WHERE user = ?;", pn, user); res.ok("Password Changed.") }
-                                else res.err("Either your current password is incorrect or the new passwords did not match.\nPlease try again.")
+                                if (pn == pc && d.size == 1) { db.preparedExec("UPDATE users SET password = ? WHERE user = ?;", pn, user); res.ok(tr("Password Changed.")) }
+                                else res.err(tr("Either your current password is incorrect or the new passwords did not match.\nPlease try again."))
                             }
                             tok.refresh()
                         }
@@ -238,7 +238,7 @@ object CaptchaPage : Page() {
             }
         }
 
-        c.button("Change") { b ->
+        c.button(tr("Change")) { b ->
             val p = linkedMapOf("password_new" to n.str(), "password_conf" to cf.str(), "Change" to "Change",
                 "g-recaptcha-response" to ovr.str().ifEmpty { ans.str() })
             step?.let { p["step"] = it.str() }
@@ -264,11 +264,11 @@ object SqliPage : Page() {
         val db = DvwaApp.I.db
         try {
             when (lv) {
-                "low" -> res.pre(userRows(db.vulnQuery("SELECT first_name, last_name FROM users WHERE user_id = '$id';"), id).ifEmpty { "(no rows)" })
-                "medium" -> { val e = U.esc(id); res.pre(userRows(db.vulnQuery("SELECT first_name, last_name FROM users WHERE user_id = $e;"), e).ifEmpty { "(no rows)" }) }
+                "low" -> res.pre(userRows(db.vulnQuery("SELECT first_name, last_name FROM users WHERE user_id = '$id';"), id).ifEmpty { tr("(no rows)") })
+                "medium" -> { val e = U.esc(id); res.pre(userRows(db.vulnQuery("SELECT first_name, last_name FROM users WHERE user_id = $e;"), e).ifEmpty { tr("(no rows)") }) }
                 "high" -> {
-                    val r = try { db.vulnQuery("SELECT first_name, last_name FROM users WHERE user_id = '$id' LIMIT 1;") } catch (e: SQLiteException) { res.err("Something went wrong."); return }
-                    res.pre(userRows(r, id).ifEmpty { "(no rows)" })
+                    val r = try { db.vulnQuery("SELECT first_name, last_name FROM users WHERE user_id = '$id' LIMIT 1;") } catch (e: SQLiteException) { res.err(tr("Something went wrong.")); return }
+                    res.pre(userRows(r, id).ifEmpty { tr("(no rows)") })
                 }
                 else -> {
                     if (!U.isNumeric(id)) return
@@ -285,34 +285,34 @@ object SqliPage : Page() {
         val res = c.result()
         when (lv) {
             "low" -> {
-                val id = c.field("User ID:")
-                c.button("Submit") { b -> val v = id.str(); Bg.run(b) { res.clear(); res.info("GET /vulnerabilities/sqli/?id=${U.urlencode(v)}&Submit=Submit"); query(lv, v, res) } }
+                val id = c.field(tr("User ID:"))
+                c.button(tr("Submit")) { b -> val v = id.str(); Bg.run(b) { res.clear(); res.info("GET /vulnerabilities/sqli/?id=${U.urlencode(v)}&Submit=Submit"); query(lv, v, res) } }
             }
             "medium" -> {
-                val sp = c.spinner("User ID:", (1..5).map { it.toString() })
+                val sp = c.spinner(tr("User ID:"), (1..5).map { it.toString() })
                 val t = c.tamper()
                 val ovr = t.field("POST body id= (override the dropdown)", "")
-                c.button("Submit") { b ->
+                c.button(tr("Submit")) { b ->
                     val v = ovr.str().ifEmpty { (sp.selectedItemPosition + 1).toString() }
                     Bg.run(b) { res.clear(); res.info("POST /vulnerabilities/sqli/  id=${U.urlencode(v)}&Submit=Submit"); query(lv, v, res) }
                 }
             }
             "high" -> {
-                c.p("Click here to change your ID. (opens session-input.php, which stores the ID in your session)")
-                c.button("Change your ID", outlined = true) {
+                c.p(tr("Click here to change your ID. (opens session-input.php, which stores the ID in your session)"))
+                c.button(tr("Change your ID"), outlined = true) {
                     val et = EditText(f.requireContext())
-                    AlertDialog.Builder(f.requireContext()).setTitle("Session ID input").setView(et)
-                        .setPositiveButton("Submit") { _, _ ->
+                    AlertDialog.Builder(f.requireContext()).setTitle(tr("Session ID input")).setView(et)
+                        .setPositiveButton(tr("Submit")) { _, _ ->
                             val v = et.text.toString(); Session.vars["sqli_id"] = v
                             Bg.run(null) { res.clear(); res.info("Session ID: $v"); query(lv, v, res) }
-                        }.setNegativeButton("Close", null).show()
+                        }.setNegativeButton(tr("Close"), null).show()
                 }
                 Session.vars["sqli_id"]?.let { v -> Bg.run(null) { query(lv, v.toString(), res) } }
             }
             else -> {
-                val id = c.field("User ID:")
+                val id = c.field(tr("User ID:"))
                 val t = c.tamper(); val tok = Tok(t, true)
-                c.button("Submit") { b ->
+                c.button(tr("Submit")) { b ->
                     val v = id.str(); val tv = tok.value()
                     Bg.run(b) { res.clear(); if (!tok.valid(tv)) res.err(TOKEN_FAIL) else query(lv, v, res); tok.refresh() }
                 }
@@ -346,8 +346,8 @@ object SqliBlindPage : Page() {
         val t0 = System.currentTimeMillis()
         val ok = check(lv, id)
         val ms = System.currentTimeMillis() - t0
-        if (ok) res.ok("User ID exists in the database.") else res.err("User ID is MISSING from the database.")
-        res.text("HTTP ${if (ok || lv == "impossible") "200 OK" else "404 Not Found"} · response time: $ms ms")
+        if (ok) res.ok(tr("User ID exists in the database.")) else res.err(tr("User ID is MISSING from the database."))
+        res.text(tr("HTTP {0} · response time: {1} ms", if (ok || lv == "impossible") "200 OK" else "404 Not Found", ms))
     }
 
     override fun build(ui: Ui, f: PageFragment) {
@@ -356,29 +356,29 @@ object SqliBlindPage : Page() {
         val res = c.result()
         when (lv) {
             "low" -> {
-                val id = c.field("User ID:")
-                c.button("Submit") { b -> val v = id.str(); Bg.run(b) { send(lv, v, res, "GET /vulnerabilities/sqli_blind/?id=${U.urlencode(v)}&Submit=Submit") } }
+                val id = c.field(tr("User ID:"))
+                c.button(tr("Submit")) { b -> val v = id.str(); Bg.run(b) { send(lv, v, res, "GET /vulnerabilities/sqli_blind/?id=${U.urlencode(v)}&Submit=Submit") } }
             }
             "medium" -> {
-                val sp = c.spinner("User ID:", (1..5).map { it.toString() })
+                val sp = c.spinner(tr("User ID:"), (1..5).map { it.toString() })
                 val t = c.tamper(); val ovr = t.field("POST body id= (override the dropdown)", "")
-                c.button("Submit") { b -> val v = ovr.str().ifEmpty { (sp.selectedItemPosition + 1).toString() }; Bg.run(b) { send(lv, v, res, "POST id=${U.urlencode(v)}") } }
+                c.button(tr("Submit")) { b -> val v = ovr.str().ifEmpty { (sp.selectedItemPosition + 1).toString() }; Bg.run(b) { send(lv, v, res, "POST id=${U.urlencode(v)}") } }
             }
             "high" -> {
-                c.p("Click here to change your ID. (cookie-input.php sets the 'id' cookie)")
+                c.p(tr("Click here to change your ID. (cookie-input.php sets the 'id' cookie)"))
                 val t = c.tamper(); val ck = t.field("Cookie: id=", (Session.vars["blind_id"] as? String) ?: "1")
-                c.button("Change your ID", outlined = true) {
+                c.button(tr("Change your ID"), outlined = true) {
                     val et = EditText(f.requireContext())
-                    AlertDialog.Builder(f.requireContext()).setTitle("Cookie ID input").setView(et)
-                        .setPositiveButton("Submit") { _, _ -> val v = et.text.toString(); Session.vars["blind_id"] = v; ck.setText(v) }
-                        .setNegativeButton("Close", null).show()
+                    AlertDialog.Builder(f.requireContext()).setTitle(tr("Cookie ID input")).setView(et)
+                        .setPositiveButton(tr("Submit")) { _, _ -> val v = et.text.toString(); Session.vars["blind_id"] = v; ck.setText(v) }
+                        .setNegativeButton(tr("Close"), null).show()
                 }
-                c.button("Reload page (send cookie)") { b -> val v = ck.str(); Session.vars["blind_id"] = v; Bg.run(b) { send(lv, v, res, "GET /vulnerabilities/sqli_blind/  Cookie: id=$v") } }
+                c.button(tr("Reload page (send cookie)")) { b -> val v = ck.str(); Session.vars["blind_id"] = v; Bg.run(b) { send(lv, v, res, "GET /vulnerabilities/sqli_blind/  Cookie: id=$v") } }
             }
             else -> {
-                val id = c.field("User ID:")
+                val id = c.field(tr("User ID:"))
                 val t = c.tamper(); val tok = Tok(t, true)
-                c.button("Submit") { b ->
+                c.button(tr("Submit")) { b ->
                     val v = id.str(); val tv = tok.value()
                     Bg.run(b) { if (!tok.valid(tv)) { res.clear(); res.err(TOKEN_FAIL) } else send(lv, v, res, "GET ?id=${U.urlencode(v)} (prepared statement)"); tok.refresh() }
                 }
@@ -394,10 +394,10 @@ object WeakIdPage : Page() {
     override fun build(ui: Ui, f: PageFragment) {
         val lv = level
         val c = ui.card()
-        c.p("This page will set a new cookie called dvwaSession each time the button is clicked.")
+        c.p(tr("This page will set a new cookie called dvwaSession each time the button is clicked."))
         val res = c.result()
-        val hist = ui.card("Cookies received so far").result()
-        c.button("Generate") {
+        val hist = ui.card(tr("Cookies received so far")).result()
+        c.button(tr("Generate")) {
             val v: String; val attrs: String
             when (lv) {
                 "low" -> { val n = ((Session.vars["last_session_id"] as? Int) ?: 0) + 1; Session.vars["last_session_id"] = n; v = n.toString(); attrs = "" }

@@ -73,13 +73,13 @@ object Xss {
             out += "$fn dialog → \"$arg\""
         }
         Regex("(?is)(?:document|window)\\.location(?:\\.href)?\\s*=\\s*([^;]+)").findAll(code).forEach {
-            out += "Victim browser navigated to: ${evalArg(it.groupValues[1])} (simulated, nothing leaves the device)"
+            out += tr("Victim browser navigated to: {0} (simulated, nothing leaves the device)", evalArg(it.groupValues[1]))
         }
         Regex("(?is)(?:fetch|navigator\\.sendBeacon)\\s*\\(([^,)]*)").findAll(code).forEach {
-            out += "HTTP request to ${evalArg(it.groupValues[1])} (simulated exfiltration, no network)"
+            out += tr("HTTP request to {0} (simulated exfiltration, no network)", evalArg(it.groupValues[1]))
         }
         Regex("(?is)\\.src\\s*=\\s*([^;]+)").findAll(code).forEach {
-            out += "Image/script beacon to ${evalArg(it.groupValues[1])} (simulated exfiltration, no network)"
+            out += tr("Image/script beacon to {0} (simulated exfiltration, no network)", evalArg(it.groupValues[1]))
         }
         Regex("(?is)document\\.write(?:ln)?\\s*\\(([^)]*)\\)").findAll(code).forEach {
             out += "document.write → ${evalArg(it.groupValues[1])}"
@@ -87,7 +87,7 @@ object Xss {
         Regex("(?is)console\\.log\\s*\\(([^)]*)\\)").findAll(code).forEach {
             out += "console.log → ${evalArg(it.groupValues[1])}"
         }
-        if (out.isEmpty() && code.isNotBlank()) out += "Script executed: ${code.take(200)}"
+        if (out.isEmpty() && code.isNotBlank()) out += tr("Script executed: {0}", code.take(200))
         return out
     }
 
@@ -127,7 +127,7 @@ object Xss {
 
     /** One-line verdict + effects for display. */
     fun describe(h: Hit): String {
-        val trig = if (h.auto) "runs automatically on page load" else "runs when the victim clicks/hovers"
+        val trig = if (h.auto) tr("runs automatically on page load") else tr("runs when the victim clicks/hovers")
         return "${h.vector} — $trig\n" + simulate(h.code).joinToString("\n") { "  • $it" }
     }
 

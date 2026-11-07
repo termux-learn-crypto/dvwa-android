@@ -1,0 +1,39 @@
+<div class="body_padded">
+	<h1>Help - Weak Session IDs</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>परिचय (About)</h3>
+		<p>लॉग इन करने के बाद किसी विशिष्ट यूजर के रूप में साइट को एक्सेस करने के लिए अक्सर केवल session ID की जानकारी की आवश्यकता होती है, यदि उस session ID की गणना (calculate) की जा सकती है या आसानी से अनुमान लगाया जा सकता है, तो एक हमलावर के लिए पासवर्ड का brute force किए बिना या Cross-Site Scripting जैसी अन्य विसंगतियों (vulnerabilities) को ढूंढे बिना यूजर खातों तक पहुंच प्राप्त करना आसान हो जाता है।</p>
+
+		<p><hr /></p>
+
+		<h3>उद्देश्य (Objective)</h3>
+		<p>यह मॉड्यूल dvwaSession cookie मान (value) सेट करने के चार अलग-अलग तरीकों का उपयोग करता है, प्रत्येक लेवल का उद्देश्य यह पता लगाना है कि ID कैसे जनरेट होती है और फिर अन्य सिस्टम यूजर की ID का अनुमान लगाना है।</p>
+
+		<p><hr /></p>
+
+		<h3>Low Level</h3>
+		<p>cookie का मान (value) बहुत स्पष्ट रूप से अनुमान लगाने योग्य होना चाहिए।</p>
+
+		<h3>Medium Level</h3>
+		<p>मान (value) low की तुलना में थोड़ा अधिक रैंडम दिखता है लेकिन यदि आप कुछ को इकट्ठा करते हैं तो आपको एक पैटर्न दिखाई देने लगेगा।</p>
+
+		<h3>High Level</h3>
+		<p>पहले पता लगाएं कि मान (value) किस फॉर्मेट में है और फिर यह पता लगाने का प्रयास करें कि मानों को जनरेट करने के लिए इनपुट के रूप में क्या उपयोग किया जा रहा है।</p>
+		<p>cookie में अतिरिक्त flags भी जोड़े जा रहे हैं, इससे चैलेंज पर कोई प्रभाव नहीं पड़ता है बल्कि यह उन अतिरिक्त सुरक्षा उपायों (protections) को उजागर करता है जिन्हें cookie की सुरक्षा के लिए जोड़ा जा सकता है।</p>
+
+		<h3>Impossible Level</h3>
+		<p>इस लेवल पर cookie का मान अनुमान लगाने योग्य नहीं होना चाहिए, लेकिन प्रयास करने के लिए स्वतंत्र महसूस करें।</p>
+		<p>अतिरिक्त flags के साथ-साथ, cookie को डोमेन और चैलेंज के path से जोड़ा जा रहा है।</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<p>संदर्भ (Reference): <a href="https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/06-Session_Management_Testing/01-Testing_for_Session_Management_Schema" target="_blank">WSTG - Session Management Schema</a></p>
+	<p>संदर्भ (Reference): <a href="https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html" target="_blank">OWASP Cheat Sheet - Session Management</a></p>
+</div>

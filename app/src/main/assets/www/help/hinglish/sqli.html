@@ -1,0 +1,60 @@
+<div class="body_padded">
+	<h1>Help - SQL Injection</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>Parichay (About)</h3>
+		<p>SQL Injection attack mein client ke input data ke zariye application ke andar ek SQL query insert ya "inject" ki jaati hai.
+			Ek successful SQL injection exploit database se sensitive data read kar sakta hai, database data ko modify kar sakta hai (insert/update/delete), database par administration operations execute kar sakta hai
+			(jaise DBMS ko shutdown karna), DBMS file system par maujuda kisi file ka content recover kar sakta hai (load_file) aur kuch cases mein operating system ko commands bhi de sakta hai.</p>
+
+		<p>SQL injection attacks ek tarah ke injection attacks hote hain, jismein predefined SQL commands ke execution ko affect karne ke liye data-plane input mein SQL commands inject kiye jaate hain.</p>
+
+		<p>Is attack ko "SQLi" bhi kaha jaata hai.</p>
+
+		<br /><hr /><br />
+
+		<h3>Objective (lakshya)</h3>
+		<p>Database mein 5 users hain, jinki IDs 1 se lekar 5 tak hain. Aapka mission... SQLi ke zariye unke passwords churaana hai.</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>Yeh SQL query RAW input ka use karti hai jise attacker seedha control karta hai. Unhe bas query ko escape karna hota hai aur phir woh
+			chahe koi bhi SQL query execute kar sakte hain.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">?id=a' UNION SELECT "text1","text2";-- -&Submit=Submit</span>.</pre>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>Medium level mein SQL injection protection ka ek tareeqa use hota hai, jismein
+			"<a href="https://secure.php.net/manual/en/function.mysql-real-escape-string.php" target="_blank">mysql_real_escape_string()</a>" function ka use hota hai.
+			Lekin kyunki SQL query mein parameter ke aas-paas quotes nahi hain, isliye yeh query ko alter hone se poori tarah protect nahi kar payega.</p>
+
+		<p>Text box ko ek pre-defined dropdown list se replace kar diya gaya hai aur form submit karne ke liye POST ka use hota hai.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">?id=a UNION SELECT 1,2;-- -&Submit=Submit</span>.</pre>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>Yeh low level jaisa hi hai, bas is baar attacker alag tareeqe se value input kar raha hai.
+			Input values direct GET request ke bajaye kisi doosre page ka use karke session variables ke zariye vulnerable query mein transfer ho rahi hain.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">ID: a' UNION SELECT "text1","text2";-- -&Submit=Submit</span>.</pre>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>Ab queries parameterized queries hain (dynamic hone ke bajaye). Iska matlab hai ki query developer ne define ki hai,
+			aur yeh distinguish karti hai ki kaun sa section code hai aur baaki ka data hai.</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>Reference: <a href="https://www.owasp.org/index.php/SQL_Injection" target="_blank">https://www.owasp.org/index.php/SQL_Injection</a></p>
+</div>

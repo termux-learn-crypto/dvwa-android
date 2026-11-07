@@ -11,6 +11,30 @@
         android:orientation="vertical"
         android:padding="24dp">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGuide"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAllCaps="false"
+                android:text="@string/user_guide" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLang"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:textAllCaps="false"
+                android:text="@string/language" />
+        </LinearLayout>
+
         <ImageView
             android:id="@+id/imgLogo"
             android:layout_width="wrap_content"
@@ -26,16 +50,17 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:gravity="center"
-            android:text="Damn Vulnerable Web Application – Offline Native Edition"
+            android:text="@string/login_title"
             android:textStyle="bold"
             android:textSize="18sp" />
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilUser"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:hint="Username">
+            android:hint="@string/username">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etUser"
@@ -46,12 +71,13 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilPass"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             app:endIconMode="password_toggle"
-            android:hint="Password">
+            android:hint="@string/password">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etPass"
@@ -65,7 +91,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Login" />
+            android:text="@string/login" />
 
         <TextView
             android:id="@+id/tvMessage"
@@ -81,7 +107,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:gravity="center"
-            android:text="Default login: admin / password"
+            android:text="@string/default_login"
             android:textSize="12sp" />
 
     </LinearLayout>

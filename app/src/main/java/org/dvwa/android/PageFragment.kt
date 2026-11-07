@@ -38,11 +38,13 @@ class PageFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         page = Pages.byId(arguments?.getString("id") ?: "home")
-        b.tvTitle.text = if (page.vuln) "Vulnerability: ${page.title}" else page.title
-        b.tvLevel.text = "Security level: ${page.level.replaceFirstChar { it.uppercase() }}"
+        b.tvTitle.text = if (page.vuln) tr("Vulnerability: {0}", page.title) else page.title
+        b.tvLevel.text = tr("Security level: {0}", Lang.levelName(page.level))
         b.tvLevel.setBackgroundColor(when (page.level) { "low" -> 0xFFC62828.toInt(); "medium" -> 0xFFEF6C00.toInt(); "high" -> 0xFF1565C0.toInt(); else -> 0xFF2E7D32.toInt() })
         b.tvLevel.visibility = if (page.vuln) View.VISIBLE else View.GONE
         b.buttonBar.visibility = if (page.vuln) View.VISIBLE else View.GONE
+        b.btnSource.text = tr("View Source"); b.btnHelp.text = tr("View Help"); b.btnCompare.text = tr("Compare All")
+        b.tvMoreInfoHeader.text = tr("More Information")
         b.btnSource.setOnClickListener { startActivity(TextActivity.source(requireContext(), page.id, page.title, page.level)) }
         b.btnCompare.setOnClickListener { startActivity(TextActivity.source(requireContext(), page.id, page.title, "all")) }
         b.btnHelp.setOnClickListener { startActivity(TextActivity.help(requireContext(), page.id, page.title)) }
@@ -56,7 +58,7 @@ class PageFragment : Fragment() {
         try {
             page.build(Ui(requireContext(), b.content), this)
         } catch (e: Exception) {
-            b.content.addView(TextView(requireContext()).apply { text = "Error building page: $e" })
+            b.content.addView(TextView(requireContext()).apply { text = tr("Error building page: {0}", e) })
         }
     }
 
@@ -69,7 +71,7 @@ class PageFragment : Fragment() {
 
 /** Shows an external URL the app refuses to open (offline sandbox). */
 fun externalNotice(f: PageFragment, url: String) {
-    OutBox.alert(f.requireContext(), "External navigation blocked",
-        "The app would now send the victim to:\n\n$url\n\nDVWA Offline never contacts external hosts (no INTERNET permission). If this was an Open Redirect or an exfiltration, the attack worked.")
+    OutBox.alert(f.requireContext(), tr("External navigation blocked"),
+        tr("The app would now send the victim to:\n\n{0}\n\nDVWA Offline never contacts external hosts (no INTERNET permission). If this was an Open Redirect or an exfiltration, the attack worked.", url))
 }
 

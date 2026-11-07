@@ -14,6 +14,7 @@ class DvwaApp : Application() {
         super.onCreate()
         I = this
         prefs = getSharedPreferences("dvwa", Context.MODE_PRIVATE)
+        Lang.init()
         db = Db(this)
         os = FakeOs(this)
         Thread { try { db.get() } catch (e: Exception) { } }.start()

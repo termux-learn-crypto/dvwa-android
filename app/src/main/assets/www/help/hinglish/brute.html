@@ -1,0 +1,64 @@
+<div class="body_padded">
+	<h1>Help - Brute Force (Login)</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>Parichay (About)</h3>
+		<p>Password cracking woh process hai jisme kisi computer system mein stored ya transmit kiye gaye data se passwords recover kiye jaate hain.
+			Iska ek common tareeqa yeh hai ki password ke liye baar-baar guesses try kiye jayein.</p>
+
+		<p>Users aksar weak passwords choose karte hain. Insecure choices ke examples mein dictionary mein milne wale single words, family names, koi bhi bohot chhota password
+			(aam taur par 6 ya 7 characters se kam maana jaata hai), ya predictable patterns shaamil hain
+			(jaise vowels aur consonants ko alternate karna, jise leetspeak kehte hain, jisse "password" ban jata hai "p@55w0rd").</p>
+
+		<p>Target ke hisaab se ek targeted wordlist banana, aksar sabse zyada success rate deta hai. Market mein aise public tools available hain jo company websites, personal social networks aur doosri common information (jaise birthdays ya graduation ka year) ke combination par based ek dictionary create kar dete hain.</p>
+
+		<p>Akhiri option har possible password ko try karna hota hai, jise brute force attack kehte hain. Theory ke mutabiq, agar attempts ki koi limit na ho, toh ek brute force attack hamesha successful hoga kyunki acceptable passwords ke rules public hone chahiye; lekin jaise-jaise password ki length badhti hai, waise-waise possible passwords ki sankhya bhi badh jati hai jisse attack mein zyada time lagta hai.</p>
+
+		<br /><hr /><br />
+
+		<h3>Objective (lakshya)</h3>
+		<p>Aapka goal brute forcing ke zariye administrator ka password nikalna hai. Baaki ke chaar users ke passwords nikalne par bonus points milenge!</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>Developer ne <u>kisi bhi protection method</u> ko bilkul use nahi kiya hai, jiski wajah se koi bhi bina kisi rok-tok ke kisi bhi user mein login karne ke liye jitni chahe utni baar try kar sakta hai.</p>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>Is stage mein failed login screen par ek sleep add kar diya gaya hai. Iska matlab yeh hai ki jab aap galat login karenge, toh page visible hone se pehle do second ka extra wait hoga.</p>
+
+		<p>Yeh sirf ek minute mein process hone wali requests ki quantity ko slow karega, jisse brute force karne mein zyada time lagega.</p>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>Yahan ek "anti Cross-Site Request Forgery (CSRF) token" ka use kiya gaya hai. Ek purana myth hai ki yeh protection brute force attacks ko rok degi. Aisa nahi hai.
+			Yeh level medium level ko aage extend karta hai, failed login hone par wait karke lekin is baar yeh time do se chaar seconds ke beech ek random amount hota hai.
+			Iska idea kisi bhi timing predictions ko confuse karna hai.</p>
+
+		<p>Ek <a href="https://en.wikipedia.org/wiki/CAPTCHA" target="_blank">CAPTCHA</a> form ka use karne se bhi CSRF token jaisa hi effect mil sakta hai.</p>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>Impossible level mein brute force (aur user enumeration) possible nahi hona chahiye. Developer ne ek "lock out" feature add kiya hai, jahan agar pichle 15 minutes mein paanch galat logins hote hain, toh locked out user login nahi kar payega.</p>
+
+		<p>Agar locked out user login karne ki koshish karega, valid password ke sath bhi, toh woh yeh dikhayega ki uska username ya password galat hai. Isse yeh pata lagana impossible ho jata hai ki system par koi valid account us password ke sath exist karta bhi hai ya nahi, aur kya account locked hai.</p>
+
+		<p>Isse "Denial of Service" (DoS) ho sakta hai, agar koi kisi ke account par lagataar login karne ki koshish karta rahe.
+			Is level ko attacker ko blacklist karke (jaise IP address, country, user-agent) aur behtar banana padega.</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>Reference: <a href="https://en.wikipedia.org/wiki/Password_cracking" target="_blank">https://en.wikipedia.org/wiki/Password_cracking</a></p>
+</div>

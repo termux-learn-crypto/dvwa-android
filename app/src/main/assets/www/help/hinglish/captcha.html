@@ -1,0 +1,51 @@
+<div class="body_padded">
+	<h1>Help - Insecure CAPTCHA</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>Parichay (About)</h3>
+		<p>Ek <a href="https://en.wikipedia.org/wiki/CAPTCHA" target="_blank">CAPTCHA</a> ek aisa program hota hai jo yeh pehchan sakta hai ki user ek insaan hai ya computer. Aapne inko dekha hi hoga - web registration forms ke niche colourful images jinme distorded text hota hai. CAPTCHAs ka use bahut saari websites "bots" yaani automated programs jo spam generate karne ke liye likhe jaate hain, unke abuse ko rokne ke liye karti hain. Koi bhi computer program distorted text ko utna acchi tarah nahi padh sakta jitna insaan padh sakte hain, isliye bots CAPTCHAs se protected sites ko navigate nahi kar paate.</p>
+
+		<p>CAPTCHAs ka use aksar sensitive functionality ko automated bots se bachane ke liye kiya jata hai. Aisi functionality me aamtaur par user registration aur changes, password changes, aur content post karna shamil hota hai. Is example me, CAPTCHA user account ki password change karne ki functionality ko guard kar raha hai. Yeh CSRF attacks ke sath-sath automated bot guessing se bhi limited protection deta hai.</p>
+
+		<br /><hr /><br />
+
+		<h3>Objective (lakshya)</h3>
+		<p>Aapka aim hai, kharab CAPTCHA system ki wajah se current user ka password automated tarike se change karna.</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>Is CAPTCHA ke sath problem yeh hai ki yeh easily bypass ho jata hai. Developer ne yeh assumption banaya hai ki saare users screen 1 se jayenge, CAPTCHA complete karenge, aur phir agli screen par move karenge jahan actually password update hota hai. Naye password ko seedhe change page par submit karke, user CAPTCHA system ko bypass kar sakta hai.</p>
+
+		<p>Low security me is challenge ko complete karne ke liye jo parameters chahiye honge woh kuch is tarah honge:</p>
+		<pre>Spoiler (jawab): <span class="spoiler">?step=2&password_new=password&password_conf=password&Change=Change</span>.</pre>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>Developer ne session ke around state rakhne aur yeh track karne ki koshish ki hai ki user ne data submit karne se pehle successfully CAPTCHA complete kiya tha ya nahi. Kyunki state variable (Spoiler (jawab): <span class="spoiler">passed_captcha</span>) client side par hai, isliye ise attacker dwara kuch is tarah manipulate kiya ja sakta hai:</p>
+		<pre>Spoiler (jawab): <span class="spoiler">?step=2&password_new=password&password_conf=password&passed_captcha=true&Change=Change</span>.</pre>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>Yahan development code chhoot gaya hai, jise production me kabhi remove nahi kiya gaya tha. CAPTCHA field me invalid values allow karne ke liye development values ko mimic karna possible hai.</p>
+		<p>Check ko skip karne ke liye aapko apna user-agent (Spoiler (jawab): <span class="spoiler">reCAPTCHA</span>) spoof karna padega aur sath hi CAPTCHA value (Spoiler (jawab): <span class="spoiler">hidd3n_valu3</span>) ka use karna padega.</p>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>Impossible level me, developer ne attack ke saare raaste band kar diye hain. Process ko simplify kar diya gaya hai taaki data aur CAPTCHA verification ek hi single step me ho jaye. Alternately, developer state variable ko server side par bhi move kar sakta tha (medium level ki tarah), jisse user ise change na kar sake.</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>Reference: <a href="https://en.wikipedia.org/wiki/CAPTCHA" target="_blank">https://en.wikipedia.org/wiki/CAPTCHA</a></p>
+</div>

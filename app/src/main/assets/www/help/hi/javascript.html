@@ -1,0 +1,52 @@
+<div class="body_padded">
+	<h1>Help - Client Side JavaScript</h1>
+
+	<div id="code" style="padding: 3px; border: 2px #C0C0C0 solid;>">
+		<h3>परिचय (About)</h3>
+		<p>इस सेक्शन के हमले आपको यह सीखने में मदद करने के लिए डिज़ाइन किए गए हैं कि ब्राउज़र में JavaScript का उपयोग कैसे किया जाता है और इसे कैसे हेरफेर (manipulate) किया जा सकता है। इन हमलों को केवल नेटवर्क ट्रैफ़िक का विश्लेषण करके भी अंजाम दिया जा सकता है, लेकिन बात वह नहीं है और इससे काम शायद बहुत ज़्यादा मुश्किल भी हो जाता।</p>
+
+		<hr />
+		
+		<h3>उद्देश्य (Objective)</h3>
+		<p>लेवल जीतने के लिए बस "success" फ़्रेज़ सबमिट करें। ज़ाहिर है, यह इतना आसान नहीं है, हर लेवल में अलग-अलग सुरक्षा तंत्र (protection mechanisms) लागू किए गए हैं, पेजों में शामिल JavaScript का विश्लेषण करना होगा और फिर सुरक्षा को बायपास करने के लिए इसमें फेरबदल करना होगा।</p>
+
+		<hr />
+		<h3>Low Level</h3>
+		<p>सारी JavaScript पेज में ही शामिल है। सोर्स को पढ़ें और पता लगाएँ कि फ़्रेज़ से मैच करने के लिए ज़रूरी token जनरेट करने के लिए किस फ़ंक्शन का उपयोग किया जा रहा है और फिर मैन्युअली फ़ंक्शन को कॉल करें।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">Change the phrase to success and then use the function generate_token() to update the token.</span></pre>
+
+		<p><br /></p>
+
+		<h3>Medium Level</h3>
+		<p>
+			JavaScript को उसकी अपनी फ़ाइल में अलग कर दिया गया है और फिर उसे मिनिमाइज़ कर दिया गया है। आपको शामिल की गई फ़ाइल के लिए सोर्स देखना होगा और फिर पता लगाना होगा कि यह क्या कर रही है। Firefox और Chrome दोनों में एक Pretty Print फ़ीचर होता है जो कम्प्रेशन को उलटने और कोड को पढ़ने योग्य तरीके से दिखाने की कोशिश करता है।
+		</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">The file uses the setTimeout function to run the do_elsesomething function which generates the token.</span></pre>
+
+		<p><br /></p>
+
+		<h3>High Level</h3>
+		<p>
+			JavaScript को कम से कम एक इंजन द्वारा ऑबफ़uscate (अस्पष्ट) किया गया है। यह पता लगाने के लिए कि क्या उपयोगी है, क्या कचरा है और मिशन को पूरा करने के लिए क्या ज़रूरी है, आपको कोड को स्टेप-बाय-स्टेप देखना होगा।
+		</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">If it helps, two packers have been used, the first is from <a href="https://www.danstools.com/javascript-obfuscate/index.php">Dan's Tools</a> and the second is the <a href="https://javascriptobfuscator.herokuapp.com/">JavaScript Obfuscator Tool</a>.</span></pre>
+		<pre>Spoiler 2: <span class="spoiler">This deobfuscation tool seems to work the best on this code <a href="http://deobfuscatejavascript.com/">deobfuscate javascript</a>.</span></pre>
+		<pre>Spoiler 3: <span class="spoiler">This is one way to do it... run the obfuscated JS through a deobfuscation app, intercept the response for the obfuscated JS and swap in the readable version. Work out the flow and you will see three functions that need to be called in order. Call the functions at the right time with the right parameters.</pre>
+
+		<p><br /></p>
+
+		<h3>Impossible Level</h3>
+		<p>आप कभी भी यूज़र पर भरोसा नहीं कर सकते और आपको यह मानकर चलना होगा कि यूज़र को भेजा जाने वाला कोई भी कोड बदला या बायपास किया जा सकता है और इसलिए कोई impossible level नहीं है।</p>
+
+	</div>
+
+	<br />
+
+	<p>संदर्भ (Reference):</p>
+	<ul>
+		<li><a href="https://www.youtube.com/watch?v=8UqHCrGdxOM" target="_blank">https://www.youtube.com/watch?v=8UqHCrGdxOM</a></li>
+		<li><a href="https://www.w3schools.com/js/" target="_blank">https://www.w3schools.com/js/</a></li>
+		<li><a href="https://www.youtube.com/watch?v=cs7EQdWO5o0&index=17&list=WL" target="_blank">https://www.youtube.com/watch?v=cs7EQdWO5o0&index=17&list=WL</a></li>
+		<li><a href="https://www.youtube.com/playlist?list=PLC9K7uaDMdAUNktlDTxsmj6rJBf4Q9TR5" target="_blank">https://www.youtube.com/playlist?list=PLC9K7uaDMdAUNktlDTxsmj6rJBf4Q9TR5</a></li>
+	</ul>
+</div>

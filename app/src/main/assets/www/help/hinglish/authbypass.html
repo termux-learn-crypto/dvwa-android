@@ -1,0 +1,79 @@
+<div class="body_padded">
+	<h1>Help - Authorisation Bypass</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>Parichay (About)</h3>
+		<p>
+			Jab developers ko complex systems mein authorisation matrices banani padti hain, toh unke liye har jagah sahi checks lagana bhool jaana bahut aasan hota hai, khaas kar un jagahon par jo browser ke zariye directly accessible nahi hoti hain, jaise ki API calls.
+		</p>
+
+		<p>
+			Ek tester ke taur par, aapko system ki har ek call ko dekhna chahiye aur phir alag-alag levels ke users ke saath usko test karna chahiye taaki yeh ensure ho sake ki checks properly ho rahe hain.
+			Yeh aksar ek lamba aur boring task ho sakta hai, especially jab ek bada matrix ho jismein bahut saare alag-alag user types hon, lekin yeh testing karna critical hai kyunki ek bhi chhoota hua check kisi attacker ko confidential data ya functions tak access dilwa sakta hai.
+		</p>
+
+		<br /><hr /><br />
+
+		<h3>Objective (lakshya)</h3>
+		<p>Aapka goal is user management system ko sabhi chaaron security levels par test karna hai taaki un areas ko identify kiya ja sake jahan authorisation checks miss ho gaye hain.</p>
+		<p>Yeh system sirf admin user ke access ke liye design kiya gaya hai, toh admin ke taur par login karke ki gayi sabhi calls ko dekhein, aur phir alag user ke taur par login karke unhe reproduce karne ki koshish karein.</p>
+		<p>Agar aapko doosre user ki zaroorat hai, toh aap <i>gordonb / abc123</i> use kar sakte hain.
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>Non-admin users ke paas 'Authorisation Bypass' menu option nahi hota hai.</p>
+		<p>Spoiler (jawab): <span class="spoiler">Try browsing directly to /vulnerabilities/authbypass/</span>.</p>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>Developer ne page ke HTML ka access lock down kar diya hai, lekin yeh check karein ki jab admin ke taur par login karte hain toh page kaise populate hota hai.</p>
+		<p>Spoiler (jawab): <span class="spoiler">Try browsing directly to /vulnerabilities/authbypass/get_user_data.php to access the API which returns the user data for the page.</span></p>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>HTML page aur data retrieve karne wali API dono ko lock down kar diya gaya hai, lekin data update karne ka kya? Aapko ensure karna hoga ki aap site ki har call ko test karein.</p>
+		<p>Spoiler (jawab): <span class="spoiler">GET calls to retrieve data have been locked down but the POST to update the data has been missed, can you figure out how to call it?</span></p>
+
+		<p>Spoiler (jawab): <span class="spoiler">This is one way to do it:</p>
+
+		<pre><span class="spoiler">fetch('change_user_details.php', {
+method: 'POST',
+headers: {
+'Accept': 'application/json',
+'Content-Type': 'application/json'
+},
+body: JSON.stringify({ 'id':1, "first_name": "Harry", "surname": "Hacker" })
+}
+)
+.then((response) => response.json())
+.then((data) => console.log(data));
+</span></pre>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>
+			Umeed hai ki is level par sabhi functions data tak access dene se pehle authorisation ko properly check karte hain.
+		</p>
+		<p>
+			Halaanki page par kuch non-authorisation related issues ho sakti hain, toh isko poori tarah secure maan kar ignore na karein.
+		</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>Reference: <a href="https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/05-Authorization_Testing/02-Testing_for_Bypassing_Authorization_Schema" target="_blank">https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/05-Authorization_Testing/02-Testing_for_Bypassing_Authorization_Schema</a></p>
+	<p>Reference: <a href="https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/04-Authentication_Testing/04-Testing_for_Bypassing_Authentication_Schema" target="_blank">https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/04-Authentication_Testing/04-Testing_for_Bypassing_Authentication_Schema</a></p>
+	<p>Reference: <a href="https://owasp.org/www-project-top-ten/2017/A2_2017-Broken_Authentication" target="_blank">https://owasp.org/www-project-top-ten/2017/A2_2017-Broken_Authentication</a></p>
+	
+</div>

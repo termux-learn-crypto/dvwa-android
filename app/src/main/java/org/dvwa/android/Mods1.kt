@@ -7,13 +7,13 @@ import java.util.Locale
 
 /** Anti-CSRF token as a visible-but-"hidden" field in the tamper panel. */
 class Tok(t: Ui?, val enabled: Boolean) {
-    val et: EditText? = if (enabled && t != null) t.field("user_token (hidden field)", Session.token) else null
+    val et: EditText? = if (enabled && t != null) t.field(tr("user_token (hidden field)"), Session.token) else null
     fun value(): String = et?.str() ?: ""
     fun valid(v: String) = !enabled || v == Session.token
     fun refresh() { if (enabled) { val n = Session.newToken(); et?.post { et.setText(n) } } }
 }
 
-const val TOKEN_FAIL = "CSRF token is incorrect"
+val TOKEN_FAIL: String get() = tr("CSRF token is incorrect")
 
 // =====================================================================================
 object BrutePage : Page() {
@@ -42,16 +42,16 @@ object BrutePage : Page() {
             val r: LoginRes
             if (auth.size == 1 && !locked) {
                 val row = auth[0]
-                out += "ok" to "Welcome to the password protected area ${row["user"]}"
+                out += "ok" to tr("Welcome to the password protected area {0}", row["user"])
                 val failed = row["failed_login"]?.toIntOrNull() ?: 0
                 if (failed >= total) {
-                    out += "warn" to "Warning: Someone might of been brute forcing your account.\nNumber of login attempts: $failed.\nLast login attempt was at: ${row["last_login"]}."
+                    out += "warn" to tr("Warning: Someone might of been brute forcing your account.\nNumber of login attempts: {0}.\nLast login attempt was at: {1}.", failed, row["last_login"])
                 }
                 db.preparedExec("UPDATE users SET failed_login = '0' WHERE user = ?;", user)
                 r = LoginRes(true, out, row["avatar"])
             } else {
                 Thread.sleep(U.rand(2, 4) * 1000L)
-                out += "err" to "Username and/or password incorrect.\n\nAlternative, the account has been locked because of too many failed logins.\nIf this is the case, please try again in $lockMin minutes."
+                out += "err" to tr("Username and/or password incorrect.\n\nAlternative, the account has been locked because of too many failed logins.\nIf this is the case, please try again in {0} minutes.", lockMin)
                 db.preparedExec("UPDATE users SET failed_login = (failed_login + 1) WHERE user = ?;", user)
                 r = LoginRes(false, out)
             }
@@ -62,12 +62,12 @@ object BrutePage : Page() {
         return try {
             val rows = db.vulnQuery(query)
             if (rows.size == 1) {
-                out += "ok" to "Welcome to the password protected area $user"
+                out += "ok" to tr("Welcome to the password protected area {0}", user)
                 LoginRes(true, out, rows[0]["avatar"])
             } else {
                 if (lv == "medium") Thread.sleep(2000)
                 if (lv == "high") Thread.sleep(U.rand(0, 3) * 1000L)
-                out += "err" to "Username and/or password incorrect."
+                out += "err" to tr("Username and/or password incorrect.")
                 LoginRes(false, out)
             }
         } catch (e: SQLiteException) {
@@ -77,14 +77,14 @@ object BrutePage : Page() {
 
     override fun build(ui: Ui, f: PageFragment) {
         val lv = level
-        val c = ui.card("Login")
-        val u = c.field("Username")
-        val p = c.field("Password", password = true)
+        val c = ui.card(tr("Login"))
+        val u = c.field(tr("Username"))
+        val p = c.field(tr("Password"), password = true)
         val t = c.tamper()
         val tok = Tok(t, lv == "high" || lv == "impossible")
-        if (!tok.enabled) t.p("No hidden fields on this level. Request method: GET (parameters visible in the URL).")
+        if (!tok.enabled) t.p(tr("No hidden fields on this level. Request method: GET (parameters visible in the URL)."))
         val res = c.result()
-        c.button("Login") { b ->
+        c.button(tr("Login")) { b ->
             val uu = u.str(); val pp = p.str(); val tv = tok.value()
             Bg.run(b) {
                 res.clear()
@@ -94,17 +94,17 @@ object BrutePage : Page() {
                 val t0 = System.currentTimeMillis()
                 val r = login(lv, uu, pp)
                 show(res, r)
-                res.text("Response time: ${System.currentTimeMillis() - t0} ms")
+                res.text(tr("Response time: {0} ms", System.currentTimeMillis() - t0))
                 tok.refresh()
             }
         }
         // ---- Intruder-style helper
-        val i = ui.card("Attack helper (like Burp Intruder)")
-        i.p("Tries each password in order against the same level logic. On High/Impossible it re-reads the page for a fresh user_token before every attempt, like a macro would.")
-        val iu = i.field("Username", "admin")
-        val list = i.field("Password list (one per line)", "123456\npassword1\nletmein\nqwerty\nabc123\nadmin\npassword\ncharley", multiline = true)
+        val i = ui.card(tr("Attack helper (like Burp Intruder)"))
+        i.p(tr("Tries each password in order against the same level logic. On High/Impossible it re-reads the page for a fresh user_token before every attempt, like a macro would."))
+        val iu = i.field(tr("Username"), "admin")
+        val list = i.field(tr("Password list (one per line)"), "123456\npassword1\nletmein\nqwerty\nabc123\nadmin\npassword\ncharley", multiline = true)
         val ir = i.result()
-        i.button("Start attack") { b ->
+        i.button(tr("Start attack")) { b ->
             val user = iu.str(); val words = list.str().lines().map { it.trimEnd('\r') }.filter { it.isNotEmpty() }.take(200)
             Bg.run(b) {
                 ir.clear()
@@ -115,7 +115,7 @@ object BrutePage : Page() {
                     if (r.ok) { ir.ok("#${n + 1} '$w' → SUCCESS (${ms} ms)\n" + r.lines.joinToString("\n") { it.second }); break }
                     else ir.text("#${n + 1} '$w' → failed (${ms} ms)")
                 }
-                ir.info("Attack finished.")
+                ir.info(tr("Attack finished."))
             }
         }
     }
@@ -145,7 +145,7 @@ object ExecPage : Page() {
                 target = U.stripslashes(target)
                 val o = target.split(".")
                 if (o.size == 4 && o.all { U.isNumeric(it) }) target = "${o[0]}.${o[1]}.${o[2]}.${o[3]}"
-                else return "ERROR: You have entered an invalid IP."
+                else return tr("ERROR: You have entered an invalid IP.")
             }
         }
         return os.shellExec("ping  -c 4 $target")
@@ -153,20 +153,20 @@ object ExecPage : Page() {
 
     override fun build(ui: Ui, f: PageFragment) {
         val lv = level
-        val c = ui.card("Ping a device")
-        val ip = c.field("Enter an IP address:", "127.0.0.1")
+        val c = ui.card(tr("Ping a device"))
+        val ip = c.field(tr("Enter an IP address:"), "127.0.0.1")
         val t = c.tamper()
         val tok = Tok(t, lv == "impossible")
-        if (!tok.enabled) t.p("No hidden fields on this level.")
-        c.p("The 'server' is simulated: a Kotlin shell interpreter (; && || | & \$() `…`) over a fake Debian file system. Nothing runs on your device.")
+        if (!tok.enabled) t.p(tr("No hidden fields on this level."))
+        c.p(tr("The 'server' is simulated: a Kotlin shell interpreter (; && || | & \$() `…`) over a fake Debian file system. Nothing runs on your device."))
         val res = c.result()
-        c.button("Submit") { b ->
+        c.button(tr("Submit")) { b ->
             val v = ip.str(); val tv = tok.value()
             Bg.run(b) {
                 res.clear()
                 if (!tok.valid(tv)) { res.err(TOKEN_FAIL); tok.refresh(); return@run }
                 val out = exec(lv, v)
-                res.pre(out.ifEmpty { "(empty output)" })
+                res.pre(out.ifEmpty { tr("(empty output)") })
                 tok.refresh()
             }
         }
@@ -180,13 +180,13 @@ object CsrfPage : Page() {
 
     /** Port of csrf/source/{level}.php. params = request parameters, referer = HTTP_REFERER header. */
     fun change(lv: String, params: Map<String, String>, referer: String): Pair<Boolean, String> {
-        if (!params.containsKey("Change")) return false to "(request ignored: no 'Change' parameter)"
+        if (!params.containsKey("Change")) return false to tr("(request ignored: no 'Change' parameter)")
         val user = DvwaApp.I.user ?: ""
         val db = DvwaApp.I.db
         val new = params["password_new"] ?: ""; val conf = params["password_conf"] ?: ""
         try {
             when (lv) {
-                "medium" -> if (!referer.contains("127.0.0.1", true)) return false to "That request didn't look correct."
+                "medium" -> if (!referer.contains("127.0.0.1", true)) return false to tr("That request didn't look correct.")
                 "high" -> if (params["user_token"] != Session.token) return false to TOKEN_FAIL
                 "impossible" -> {
                     if (params["user_token"] != Session.token) return false to TOKEN_FAIL
@@ -194,27 +194,27 @@ object CsrfPage : Page() {
                     val d = db.prepared("SELECT password FROM users WHERE user = ? AND password = ? LIMIT 1;", user, cur)
                     return if (new == conf && d.size == 1) {
                         db.preparedExec("UPDATE users SET password = ? WHERE user = ?;", U.md5(U.esc(U.stripslashes(new))), user)
-                        true to "Password Changed."
-                    } else false to "Passwords did not match or current password incorrect."
+                        true to tr("Password Changed.")
+                    } else false to tr("Passwords did not match or current password incorrect.")
                 }
             }
-            if (new != conf) return false to "Passwords did not match."
+            if (new != conf) return false to tr("Passwords did not match.")
             db.vulnExec("UPDATE `users` SET password = '${U.md5(U.esc(new))}' WHERE user = '$user';")
-            return true to "Password Changed."
+            return true to tr("Password Changed.")
         } catch (e: SQLiteException) { return false to (e.message ?: "SQL error") }
     }
 
     override fun build(ui: Ui, f: PageFragment) {
         val lv = level
-        val c = ui.card("Change your ${app.user} password")
-        val cur = if (lv == "impossible") c.field("Current password", password = true) else null
-        val n = c.field("New password", password = true)
-        val cf = c.field("Confirm new password", password = true)
+        val c = ui.card(tr("Change your {0} password", app.user))
+        val cur = if (lv == "impossible") c.field(tr("Current password"), password = true) else null
+        val n = c.field(tr("New password"), password = true)
+        val cf = c.field(tr("Confirm new password"), password = true)
         val t = c.tamper()
         val tok = Tok(t, lv == "high" || lv == "impossible")
-        val ref = t.field("Referer header", "http://127.0.0.1/vulnerabilities/csrf/")
+        val ref = t.field(tr("Referer header"), "http://127.0.0.1/vulnerabilities/csrf/")
         val res = c.result()
-        c.button("Change") { b ->
+        c.button(tr("Change")) { b ->
             val p = linkedMapOf("password_new" to n.str(), "password_conf" to cf.str(), "Change" to "Change")
             cur?.let { p["password_current"] = it.str() }
             if (tok.enabled) p["user_token"] = tok.value()
@@ -228,37 +228,37 @@ object CsrfPage : Page() {
             }
         }
 
-        val a = ui.card("Attacker: forged link / page (victim is logged in)")
-        a.p("Simulates the logged-in victim's browser opening a URL the attacker planted (e.g. <img src=…> on another site). The browser automatically sends the victim's session cookie.")
-        val url = a.field("Forged URL", "http://127.0.0.1/vulnerabilities/csrf/?password_new=hacked&password_conf=hacked&Change=Change")
-        val aref = a.field("Referer sent by the victim's browser (the attacker's page)", "http://evil.example/csrf.html")
+        val a = ui.card(tr("Attacker: forged link / page (victim is logged in)"))
+        a.p(tr("Simulates the logged-in victim's browser opening a URL the attacker planted (e.g. <img src=…> on another site). The browser automatically sends the victim's session cookie."))
+        val url = a.field(tr("Forged URL"), "http://127.0.0.1/vulnerabilities/csrf/?password_new=hacked&password_conf=hacked&Change=Change")
+        val aref = a.field(tr("Referer sent by the victim's browser (the attacker's page)"), "http://evil.example/csrf.html")
         val ares = a.result()
-        a.button("Victim opens the link") { b ->
+        a.button(tr("Victim opens the link")) { b ->
             val u = url.str(); val r = aref.str()
             Bg.run(b) {
                 ares.clear()
                 val host = Regex("^https?://([^/:?#]+)").find(u)?.groupValues?.get(1)
-                if (host != null && host != "127.0.0.1" && host != "localhost") { ares.warn("That URL points to $host, not to DVWA — nothing happens (and nothing is fetched)."); return@run }
-                if (!u.contains("/vulnerabilities/csrf")) { ares.warn("That URL is not the CSRF password-change endpoint."); return@run }
+                if (host != null && host != "127.0.0.1" && host != "localhost") { ares.warn(tr("That URL points to {0}, not to DVWA — nothing happens (and nothing is fetched).", host)); return@run }
+                if (!u.contains("/vulnerabilities/csrf")) { ares.warn(tr("That URL is not the CSRF password-change endpoint.")); return@run }
                 val params = U.parseQuery(u.substringAfter('?', "").substringBefore('#'))
                 val (ok, msg) = change(lv, params, r)
-                if (ok) ares.err("⚠ CSRF succeeded — the victim's password was changed. Response: $msg") else ares.ok("Request rejected: $msg")
+                if (ok) ares.err(tr("⚠ CSRF succeeded — the victim's password was changed. Response: {0}", msg)) else ares.ok(tr("Request rejected: {0}", msg))
             }
         }
 
-        val tc = ui.card("Test Credentials (test_credentials.php)")
-        val tu = tc.field("Username", app.user ?: "admin")
-        val tp = tc.field("Password", password = true)
+        val tc = ui.card(tr("Test Credentials (test_credentials.php)"))
+        val tu = tc.field(tr("Username"), app.user ?: "admin")
+        val tp = tc.field(tr("Password"), password = true)
         val tres = tc.result()
-        tc.button("Login", outlined = true) { b ->
+        tc.button(tr("Login"), outlined = true) { b ->
             val uu = tu.str(); val pp = tp.str()
             Bg.run(b) {
                 tres.clear()
                 val user = U.esc(U.stripslashes(uu)); val pass = U.md5(U.esc(U.stripslashes(pp)))
                 try {
                     val r = app.db.vulnQuery("SELECT * FROM `users` WHERE user='$user' AND password='$pass';")
-                    if (r.size == 1) tres.ok("Valid password for '$user'") else tres.err("Wrong password for '$user'")
-                } catch (e: Exception) { tres.err("Connection error.") }
+                    if (r.size == 1) tres.ok(tr("Valid password for '{0}'", user)) else tres.err(tr("Wrong password for '{0}'", user))
+                } catch (e: Exception) { tres.err(tr("Connection error.")) }
             }
         }
     }
@@ -280,8 +280,8 @@ object FiPage : Page() {
         val os = DvwaApp.I.os
         when (lv) {
             "medium" -> { file = file.replace("http://", "").replace("https://", ""); file = file.replace("../", "").replace("..\\", "") }
-            "high" -> if (!fnmatch("file*", file) && file != "include.php") return null to "ERROR: File not found!"
-            "impossible" -> if (file !in listOf("include.php", "file1.php", "file2.php", "file3.php")) return null to "ERROR: File not found!"
+            "high" -> if (!fnmatch("file*", file) && file != "include.php") return null to tr("ERROR: File not found!")
+            "impossible" -> if (file !in listOf("include.php", "file1.php", "file2.php", "file3.php")) return null to tr("ERROR: File not found!")
         }
         val user = DvwaApp.I.user ?: ""
         when (file) {
@@ -301,11 +301,11 @@ object FiPage : Page() {
         val pf = Regex("(?i)^php://filter/(?:read=)?convert\\.base64-encode/resource=(.*)$").find(file)
         if (pf != null) {
             val b = try { os.read(os.normalize(pf.groupValues[1].removePrefix("file://"), CWD)) } catch (e: SecurityException) { null }
-            return null to (if (b == null) warn(file, "No such file or directory") else android.util.Base64.encodeToString(b, android.util.Base64.NO_WRAP))
+            return null to (if (b == null) warn(file, tr("No such file or directory")) else android.util.Base64.encodeToString(b, android.util.Base64.NO_WRAP))
         }
         if (file.startsWith("http://", true) || file.startsWith("https://", true) || file.startsWith("ftp://", true)) {
             return null to "Warning: include(): php_network_getaddresses: getaddrinfo for ${Regex("^\\w+://([^/]+)").find(file)?.groupValues?.get(1)} failed: Temporary failure in name resolution in $CWD/index.php on line 36\n\n" +
-                "[Offline edition] Remote File Inclusion is allowed at this level (allow_url_include=On) — a real server would fetch and execute that URL. Nothing is fetched here. Tip: upload a .php/.jpg with File Upload and include it locally, or use data://text/plain;base64,…"
+                tr("[Offline edition] Remote File Inclusion is allowed at this level (allow_url_include=On) — a real server would fetch and execute that URL. Nothing is fetched here. Tip: upload a .php/.jpg with File Upload and include it locally, or use data://text/plain;base64,…")
         }
         if (file.startsWith("data:", true)) {
             val payload = if (file.contains("base64,")) try { String(android.util.Base64.decode(file.substringAfter("base64,"), android.util.Base64.DEFAULT)) } catch (e: Exception) { "" } else U.urldecode(file.substringAfter(","))
@@ -313,7 +313,7 @@ object FiPage : Page() {
         }
         if (file.startsWith("file://", true)) file = file.substring(7)
         val path = os.normalize(file, CWD)
-        val bytes = try { os.read(path) } catch (e: SecurityException) { return null to warn(file, "Permission denied") } ?: return null to warn(file, "No such file or directory")
+        val bytes = try { os.read(path) } catch (e: SecurityException) { return null to warn(file, tr("Permission denied")) } ?: return null to warn(file, tr("No such file or directory"))
         if (path.endsWith("/hackable/flags/fi.php")) {
             return null to "1.) Bond. James Bond\n\n2.) My name is Sherlock Holmes. It is my business to know what other people don't know.\n\n<br /><br />\n--LINE HIDDEN ;)--\n\n<br /><br />\n4.) The pool on the roof must have a leak.\n\n<!-- 5.) The world isn't run by weapons anymore, or energy, or money. It's run by little ones and zeroes, little bits of data. It's all just electrons. -->\n"
         }
@@ -325,14 +325,14 @@ object FiPage : Page() {
     override fun build(ui: Ui, f: PageFragment) {
         val lv = level
         val c = ui.card()
-        c.p("The page includes ?page=<file>. Pick a file or edit the parameter.")
+        c.p(tr("The page includes ?page=<file>. Pick a file or edit the parameter."))
         val page = c.field("?page=", "include.php")
-        val extra = c.field("Other query parameters (for included webshells), e.g. cmd=id", "")
+        val extra = c.field(tr("Other query parameters (for included webshells), e.g. cmd=id"), "")
         val t = c.tamper()
         val ua = t.field("User-Agent", "Mozilla/5.0 (Linux; Android) DVWA-Native")
         val ref = t.field("Referer", "")
         val xff = t.field("X-Forwarded-For", "")
-        t.p("App sandbox path for practice: ${f.requireContext().filesDir.absolutePath}  (uploads: /var/www/html/hackable/uploads/)")
+        t.p(tr("App sandbox path for practice: {0}  (uploads: /var/www/html/hackable/uploads/)", f.requireContext().filesDir.absolutePath))
         val res = c.result()
         fun go(b: android.view.View?) {
             val pg = page.str(); val params = U.parseQuery(extra.str()); val h = mapOf("User-Agent" to ua.str(), "Referer" to ref.str(), "X-Forwarded-For" to xff.str())
@@ -343,12 +343,12 @@ object FiPage : Page() {
                 if (rendered != null) res.html(rendered)
                 if (rendered == null || raw.startsWith("<!--")) {
                     res.html(raw.replace("\n", "<br/>").let { if (it.length > 20000) it.take(20000) else it })
-                    res.text("Raw response body:")
+                    res.text(tr("Raw response body:"))
                     res.pre(raw.ifEmpty { "(empty)" })
                 }
             }
         }
-        c.button("Request") { go(it) }
+        c.button(tr("Request")) { go(it) }
         for (n in listOf("file1.php", "file2.php", "file3.php")) c.button(n, outlined = true) { page.setText(n); go(it) }
     }
 }

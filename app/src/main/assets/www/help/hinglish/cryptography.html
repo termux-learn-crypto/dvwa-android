@@ -1,0 +1,179 @@
+<style>
+	pre {
+		overflow-x: auto;
+		white-space: pre-wrap;
+		word-wrap: break-word;
+	}
+</style>
+
+<div class="body_padded">
+	<h1>Help - Cryptographic Problems</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>Parichay (About)</h3>
+		<p>
+		Cryptography security ka ek bohot important area hai jo secrets ko secret rakhne ke liye use hota hai. Jab ise theek se implement na kiya jaye toh yeh secrets leak ho sakte hain ya fir crypto ke sath manipulation karke protections ko bypass kiya ja sakta hai.
+		</p>
+		<p>
+		Yeh module teen weaknesses par dhyan dega: encryption ki jagah encoding use karna, aisi algorithms use karna jinmein known weaknesses hoti hain, aur padding oracle attacks.
+		</p>
+
+		<br /><hr /><br />
+
+		<h3>Objective (lakshya)</h3>
+		<p>Har level ka apna ek objective hota hai lekin general idea weak cryptographic implementations ko exploit karna hai.</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>Jo cheez aapko notice karni chahiye woh hai encryption ki jagah encoding ka mention, isse aapko yahan ki vulnerability ka hint mil jana chahiye.</p>
+		<p>
+		<button id="low_button" onclick="show_answer('low')">Show Answer</button>
+		</p>
+		<div id="low_answer">
+		<p>Kuch messages ko encode karke aur unke output ko dekh kar start karein, agar aapne encoding standards ke sath thoda bhi waqt bitaya hai toh aap samajh jayenge ki yeh Base64 hai. Kya yeh itna simple ho sakta hai? Yeh pata lagane ke liye kuch test strings ko Base64 decode karke try karein:</p>
+		<pre><code>encode (hello) -> HwQPBBs=
+base64decode (HwQPBBs=) -> 0x1f 0x04 0x0f 0x04 0x1b</code></pre>
+		<pre><code>encode (a secret) -> FkEQDRcFChs=
+base64decode (FkEQDRcFChs=) -> 0x16 0x41 0x10 0x0d 0x17 0x05 0x0a 0x1b</code></pre>
+<p>
+Woh fail ho gaya, lekin aap yeh notice kar sakte hain ki output characters ki counting input characters ke barabar hai. Ek aur common encoding method jise kabhi-kabhi encryption samajh liya jata hai woh hai XOR, yeh clear text input leta hai aur har character ko ek key ke sath XOR karta hai jo ya toh repeat hoti hai ya input jitni length ki banane ke liye truncate ki jati hai.</p>
+<p>
+XOR associative hota hai, iska matlab yeh hai ki agar aap clear text ko key ke sath XOR karenge toh cipher text milega aur agar aap cipher text ko key ke sath XOR karenge toh clear text milega, iska yeh bhi matlab hai ki agar aap clear text ko cipher text ke sath XOR karenge, toh aapko key mil jayegi. Chaliye ise apne examples ke sath try karte hain:
+</p>
+		<pre><code>encode (hello) -> HwQPBBs=
+xor (HwQPBBs=, hello) -> wacht</code></pre>
+<p>
+Yeh kaafi promising lag raha hai, chaliye second example try karte hain:
+</p>
+		<pre><code>encode (a secret) -> FkEQDRcFChs=
+xor (FkEQDRcFChs=, a secret) -> wachtwoo</code></pre>
+
+<p>
+Key mein abhi tak koi repetition nahi hai toh chaliye ek lambi string ke sath try karte hain.
+</p>
+
+		<pre><code>encode (thisisaverylongstringtofindthepassword) -> AwkKGx0EDhkXFg4NDAYTBBsdGwoQFQwOHRkLGxoBBwAQGwMYHQs=
+xor (thisisaverylongstringtofindthepassword, base64decode (AwkKGx0EDhkXFg4NDAYTBBsdGwoQFQwOHRkLGxoBBwAQGwMYHQs=)) -> wachtwoordwachtwoordwachtwoordwachtwoo</code></pre>
+
+<p>
+Lagta hai humein apni key "wachtwoord" mil gayi hai. Chaliye ise apni challenge string par try karke dekhte hain:
+</p>
+
+<pre><code>xor (base64decode(Lg4WGlQZChhSFBYSEB8bBQtPGxdNQSwEHREOAQY=), wachtwoord) -> Your new password is: Olifant</code></pre>
+
+<p>
+Aur yeh lijiye, woh message jo hum dhoond rahe the aur woh password jo login karne ke liye chahiye.
+</p>
+
+		<p>Yahan ek aur seekh milti hai, yeh assume mat kariye ki messages ya underlying system jiske sath aap kaam kar rahe hain woh English mein hi hai. Key "wachtwoord" password ke liye Dutch word hai.</p>
+		</div>
+
+		<h3>Medium Level</h3>
+		<p>Tokens ko Electronic Code Book based algorithm (AES-128-ECB) ka use karke encrypt kiya gaya hai. Is mode mein, clear text ko fixed-size blocks mein toda jata hai aur har block ko baakiyon se independent-ly encrypt kiya jata hai. Iska result yeh hota hai ki ek aisa cipher text banta hai jo kai individual blocks se mil kar banta hai jinko aapas mein connect karne ka koi tareeqa nahi hota. Isse bhi buri baat yeh hai ki kisi bhi do clear text inputs ke koi bhi do blocks aapas mein exchange kiye ja sakte hain jab tak unhein same key ke sath encrypt kiya gaya ho. Hamare example mein, iska matlab hai ki aap apni khud ki token banane ke liye teen alag-alag tokens ke blocks le sakte hain.</p>
+		<p>
+		<button id="medium_button" onclick="show_answer('medium')">Show Answer</button>
+		</p>
+		<div id="medium_answer">
+		<p>
+			Aapko block size kaise pata chalta hai? Yeh algorithm ke naam mein hi diya hota hai. aes-128-ebc ek 128 bit block cipher hai. 128 bits 16 bytes hote hain, lekin cheezon ko human readable banane ke liye, bytes ko hex characters ke roop mein represent kiya jata hai jiska matlab hai ki har byte do characters ki hoti hai. Isse aapko 32 characters ka block size milta hai. Sooty ka token 192 characters lamba hai, 192 / 32 = 6 aur isiliye Sooty ke token mein 6 code blocks hain.
+		</p>
+
+		<p>
+Chaliye tokens ko blocks mein tod kar start karte hain.</p>
+<p><strong>Sooty:</strong></p>
+<pre><code>e287af752ed3f9601befd45726785bd9
+b85bb230876912bf3c66e50758b222d0
+837d1e6b16bfae07b776feb7afe57630
+5aec34b41499579d3fb6acc8dc92fd5f
+cea8743c3b2904de83944d6b19733cdb
+48dd16048ed89967c250ab7f00629dba</code></pre>
+</p>
+
+<p><strong>Sweep:</strong></p>
+<pre><code>3061837c4f9debaf19d4539bfa0074c1
+b85bb230876912bf3c66e50758b222d0
+83f2d277d9e5fb9a951e74bee57c77a3
+caeb574f10f349ed839fbfd223903368
+873580b2e3e494ace1e9e8035f0e7e07</code></pre>
+
+<p><strong>Soo:</strong></p>
+<pre><code>5fec0b1c993f46c8bad8a5c8d9bb9698
+174d4b2659239bbc50646e14a70becef
+83f2d277d9e5fb9a951e74bee57c77a3
+c9acb1f268c06c5e760a9d728e081fab
+65e83b9f97e65cb7c7c4b8427bd44abc
+16daa00fd8cd0105c97449185be77ef5</code></pre>
+
+		<p>
+		Har token acche se blocks mein toot gaya hai toh hum bilkul sahi raaste par hain.
+		</p>
+		<p>
+		Agar aap blocks ko dhyan se dekhenge toh aapko dikhega ki kuch aise hain jo alag-alag tokens mein repeat ho rahe hain, iska matlab yeh hai ki block banane ke liye same clear text ko encrypt kiya gaya hai. Agar hum description ko dekhen toh hum inhein JSON object ke sath map karne ki koshish kar sakte hain.
+		</p>
+		<p>
+		Sooty ko ek example ke taur par lete hain:
+		</p>
+<p><strong>Sooty:</strong></p>
+<pre><code>e287af752ed3f9601befd45726785bd9 <- Username
+b85bb230876912bf3c66e50758b222d0 <- Expiry
+837d1e6b16bfae07b776feb7afe57630 <- Level
+5aec34b41499579d3fb6acc8dc92fd5f <- Bio
+cea8743c3b2904de83944d6b19733cdb
+48dd16048ed89967c250ab7f00629dba</code></pre>
+</p>
+		<p>
+		Yeh maante hue ki hamare mappings sahi hain, agar aap match hone wale blocks ko compare karenge toh aap dekh sakte hain ki Sooty aur Sweep dono ka expiry block same hai (b85bb230876912bf3c66e50758b222d0) aur Sweep aur Soo dono ka level block same hai (83f2d277d9e5fb9a951e74bee57c77a3). Yeh tokens ke baare mein hum jo jaante hain usse match karta hai kyunki Sooty aur Sweep dono ke expired tokens hain aur Sweep aur Soo dono users hain, admins nahi.
+		</p>
+		<p>
+		Yeh sab jaan kar, ab hum apna forged session token create kar sakte hain. Humein Sweep se username block, Soo se expiry block aur Sooty se level block lena hoga. Fir hum kisi bhi token ke baaki bache blocks se token ko finish kar sakte hain. Isse humein milta hai:
+		</p>
+<pre><code>3061837c4f9debaf19d4539bfa0074c1 <- Sweep as username
+174d4b2659239bbc50646e14a70becef <- Soo's expiry time
+837d1e6b16bfae07b776feb7afe57630 <- Sooty's admin privileges
+caeb574f10f349ed839fbfd223903368 <- Finish off with Sweep's bio
+873580b2e3e494ace1e9e8035f0e7e07</code></pre>
+		<p>
+			Jisse humein milta hai...
+		</p>
+		<p>
+<textarea style="width:746px; height: 35px">3061837c4f9debaf19d4539bfa0074c1174d4b2659239bbc50646e14a70becef837d1e6b16bfae07b776feb7afe57630caeb574f10f349ed839fbfd223903368873580b2e3e494ace1e9e8035f0e7e07</textarea>
+		</p>
+		<p>
+		Yeh ek bohot hi contrived setup hai jismein tokens ko JSON object ke sath blocks map karne ke liye tweak kiya gaya hai taaki manipulation karna aasan ho, real world mein yeh itna aasan hona unlikely hai halanki kyunki data aksar fixed sized blocks se banta hai isliye overlaps is tarah ho sakte hain ki blocks ko mix karne se valid data mil jaye. Kabhi-kabhi sirf invalid data pass karne ki capability hi kaafi hoti hai isliye sirf itna karna hota hai ki blocks ko is tarah swap kiya jaye ki unhein decrypt kiya ja sake aur fir system ke baaki hisse mein pass kiya ja sake jahan woh errors paida karenge.
+		</p>
+		<p>
+		Agar aap iske sath thoda aur khelna chahte hain, toh sources directory mein <a href="cryptography/source/download_ecb_attack.php" download>ecb_attack.php</a> naam ki ek script hai jo yeh dikhati hai ki tokens kaise generate hue the aur aapko custom tokens create karne ke liye unhein alag-alag tarah se combine karne deti hai.
+		</p>
+		</div>
+
+		<h3>High Level</h3>
+		<p>System AES-128-CBC use kar raha hai jiska matlab hai ki yeh padding oracle attack ke liye vulnerable hai.</p>
+
+		<p>
+		<button id="high_button" onclick="show_answer('high')">Show Answer</button>
+		</p>
+
+		<div id="high_answer">
+		<p>Ise yahan explain karne ki koshish karne ke bajaye, Eli Sohl dwara attack par likha gaya yeh behtareen write up padhein.</p>
+		<p><a target="_blank" href="https://www.nccgroup.com/uk/research-blog/cryptopals-exploiting-cbc-padding-oracles/">Cryptopals: Exploiting CBC Padding Oracles</a></p>
+		<p>
+		Agar aap iske sath thoda aur khelna chahte hain, toh sources directory mein <a href="cryptography/source/download_oracle_attack.php" download>oracle_attack.php</a> naam ki ek script hai jo debug ke sath poore attack ko run karti hai. Aap ise ya toh DVWA site ke khilaf run kar sakte hain ya yeh apne khud ke pretend web server ke khilaf locally run hogi.
+		</p>
+		</div>
+
+		<h3>Impossible Level</h3>
+		<p>Crypto mein aap kabhi "impossible" nahi bol sakte kyunki jo cheez aaj saalon le sakti hai woh future mein minutes mein ho sakti hai jab koi naya attack milta hai ya jab processing power ek bada leap leti hai.</p>
+		<p>
+		AES-CBC ka current recommended alternative AES-GCM hai aur isiliye system yahan wahi use karta hai. 128 bit blocks ki jagah 256 bit blocks use kiye jaate hain, aur har message ke liye ek unique IV use hota hai. Yeh aaj secure ho sakta hai lekin kaun jaane kal kya le kar aaye?
+		</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+	
+</div>

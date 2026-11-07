@@ -40,12 +40,12 @@ object AuthBypassPage : Page() {
     override fun build(ui: Ui, f: PageFragment) {
         val lv = level
         val admin = app.user == "admin"
-        ui.p("This page should only be accessible by the admin user. Your challenge is to gain access to the features using one of the other users, for example gordonb / abc123. (Log out from the menu to switch user.)")
+        ui.p(tr("This page should only be accessible by the admin user. Your challenge is to gain access to the features using one of the other users, for example gordonb / abc123. (Log out from the menu to switch user.)"))
         val c = ui.card()
         if (lv != "low" && !admin) {
-            c.root.addView(android.widget.TextView(f.requireContext()).apply { text = "Unauthorised  (HTTP 403)"; textSize = 18f; setTextColor(0xFFB71C1C.toInt()) })
+            c.root.addView(android.widget.TextView(f.requireContext()).apply { text = tr("Unauthorised  (HTTP 403)"); textSize = 18f; setTextColor(0xFFB71C1C.toInt()) })
         } else {
-            c.p("Welcome to the user manager, please enjoy updating your user's details.")
+            c.p(tr("Welcome to the user manager, please enjoy updating your user's details."))
             val res = c.result()
             val table = c.container()
             fun load() {
@@ -57,28 +57,28 @@ object AuthBypassPage : Page() {
                     val o = arr.getJSONObject(i)
                     val uid = o.optString("user_id")
                     val row = tu.card("ID $uid")
-                    val fn = row.field("First Name", o.optString("first_name"))
-                    val sn = row.field("Surname", o.optString("surname"))
-                    row.button("Update", outlined = true) {
+                    val fn = row.field(tr("First Name"), o.optString("first_name"))
+                    val sn = row.field(tr("Surname"), o.optString("surname"))
+                    row.button(tr("Update"), outlined = true) {
                         val body = JSONObject().put("id", uid.toIntOrNull() ?: uid).put("first_name", fn.str()).put("surname", sn.str()).toString()
                         res.clear(); res.info("POST change_user_details.php  $body")
                         val r = changeUserDetails(lv, "POST", body)
-                        if (r.contains("\"ok\"")) res.ok("User updated") else res.err(r)
+                        if (r.contains("\"ok\"")) res.ok(tr("User updated")) else res.err(r)
                     }
                 }
             }
             load()
         }
         // Raw API access — the way an attacker reaches the back-end endpoints directly
-        val a = ui.card("API console (like Burp Repeater / curl)")
-        a.p("Requests are sent as the currently logged-in user: ${app.user}")
+        val a = ui.card(tr("API console (like Burp Repeater / curl)"))
+        a.p(tr("Requests are sent as the currently logged-in user: {0}", app.user))
         val ares = a.result()
         a.button("GET /vulnerabilities/authbypass/get_user_data.php", outlined = true) {
             ares.clear(); ares.pre(try { getUserData(lv) } catch (e: Exception) { e.toString() })
         }
-        val method = a.field("Method", "POST")
-        val body = a.field("Request body (JSON)", "{\"id\":2,\"first_name\":\"Hacked\",\"surname\":\"ByGordon\"}", multiline = true)
-        a.button("Send to /vulnerabilities/authbypass/change_user_details.php") {
+        val method = a.field(tr("Method"), "POST")
+        val body = a.field(tr("Request body (JSON)"), "{\"id\":2,\"first_name\":\"Hacked\",\"surname\":\"ByGordon\"}", multiline = true)
+        a.button(tr("Send to /vulnerabilities/authbypass/change_user_details.php")) {
             ares.clear(); ares.pre(changeUserDetails(lv, method.str().trim().uppercase(), body.str()))
         }
     }
@@ -94,19 +94,19 @@ object OpenRedirectPage : Page() {
     /** returns (status, Location or body) */
     fun redirect(lv: String, r: String?): Pair<Int, String> {
         when (lv) {
-            "low" -> return if (!r.isNullOrEmpty()) 302 to r else 500 to "Missing redirect target."
+            "low" -> return if (!r.isNullOrEmpty()) 302 to r else 500 to tr("Missing redirect target.")
             "medium" -> {
-                if (r.isNullOrEmpty()) return 500 to "Missing redirect target."
-                if (Regex("http://|https://", RegexOption.IGNORE_CASE).containsMatchIn(r)) return 500 to "Absolute URLs not allowed."
+                if (r.isNullOrEmpty()) return 500 to tr("Missing redirect target.")
+                if (Regex("http://|https://", RegexOption.IGNORE_CASE).containsMatchIn(r)) return 500 to tr("Absolute URLs not allowed.")
                 return 302 to r
             }
             "high" -> {
-                if (r.isNullOrEmpty()) return 500 to "Missing redirect target."
-                return if (r.contains("info.php")) 302 to r else 500 to "You can only redirect to the info page."
+                if (r.isNullOrEmpty()) return 500 to tr("Missing redirect target.")
+                return if (r.contains("info.php")) 302 to r else 500 to tr("You can only redirect to the info page.")
             }
             else -> {
-                if (r == null || !U.isNumeric(r)) return 200 to "Missing redirect target."
-                return when (r.trim().toDouble().toInt()) { 1 -> 302 to "info.php?id=1"; 2 -> 302 to "info.php?id=2"; 99 -> 302 to "https://digi.ninja"; else -> 200 to "Unknown redirect target." }
+                if (r == null || !U.isNumeric(r)) return 200 to tr("Missing redirect target.")
+                return when (r.trim().toDouble().toInt()) { 1 -> 302 to "info.php?id=1"; 2 -> 302 to "info.php?id=2"; 99 -> 302 to "https://digi.ninja"; else -> 200 to tr("Unknown redirect target.") }
             }
         }
     }
@@ -122,10 +122,10 @@ object OpenRedirectPage : Page() {
 
     override fun build(ui: Ui, f: PageFragment) {
         val lv = level
-        val c = ui.card("Hacker History")
-        c.p("Here are two links to some famous hacker quotes, see if you can hack them.")
+        val c = ui.card(tr("Hacker History"))
+        c.p(tr("Here are two links to some famous hacker quotes, see if you can hack them."))
         val base = "http://127.0.0.1/vulnerabilities/open_redirect/source/$lv.php?redirect="
-        val url = c.field("URL (the link a victim clicks)", base + if (lv == "impossible") "1" else "info.php?id=1")
+        val url = c.field(tr("URL (the link a victim clicks)"), base + if (lv == "impossible") "1" else "info.php?id=1")
         val res = c.result()
         fun follow(u: String) {
             res.clear()
@@ -137,21 +137,21 @@ object OpenRedirectPage : Page() {
             val external = Regex("^(?:[a-z][a-z0-9+.-]*:)?//", RegexOption.IGNORE_CASE).containsMatchIn(v.trim()) || Regex("^[a-z][a-z0-9+.-]*:", RegexOption.IGNORE_CASE).containsMatchIn(v.trim())
             val localHost = Regex("^(?:https?:)?//(127\\.0\\.0\\.1|localhost)(?:[:/]|$)", RegexOption.IGNORE_CASE).containsMatchIn(v.trim())
             if (external && !localHost) {
-                res.err("⚠ Open redirect: the victim's browser now goes to $v (shown only — never opened)")
+                res.err(tr("⚠ Open redirect: the victim's browser now goes to {0} (shown only — never opened)", v))
                 externalNotice(f, v)
                 return
             }
             if (v.contains("info.php")) {
                 val text = quote(U.parseQuery(v.substringAfter('?', ""))["id"])
-                if (text == null) res.err("HTTP 500 — Missing quote ID.") else { res.ok("Hacker Quotes (info.php)"); res.text(text) }
+                if (text == null) res.err(tr("HTTP 500 — Missing quote ID.")) else { res.ok(tr("Hacker Quotes (info.php)")); res.text(text) }
             } else {
                 val path = v.replace(Regex("^(?:https?:)?//[^/]+"), "")
-                if (!(f.main()?.openPath(path) ?: false)) res.warn("404 Not Found: $path")
+                if (!(f.main()?.openPath(path) ?: false)) res.warn(tr("404 Not Found: {0}", path))
             }
         }
-        c.button("Open link") { follow(url.str()) }
-        c.button("Quote 1", outlined = true) { url.setText(base + if (lv == "impossible") "1" else "info.php?id=1"); follow(url.str()) }
-        c.button("Quote 2", outlined = true) { url.setText(base + if (lv == "impossible") "2" else "info.php?id=2"); follow(url.str()) }
+        c.button(tr("Open link")) { follow(url.str()) }
+        c.button(tr("Quote 1"), outlined = true) { url.setText(base + if (lv == "impossible") "1" else "info.php?id=1"); follow(url.str()) }
+        c.button(tr("Quote 2"), outlined = true) { url.setText(base + if (lv == "impossible") "2" else "info.php?id=2"); follow(url.str()) }
     }
 }
 
@@ -215,40 +215,40 @@ object CryptoPage : Page() {
     private fun low(ui: Ui) {
         val key = "wachtwoord".toByteArray(Charsets.ISO_8859_1)
         val c = ui.card()
-        c.p("This super secure system will allow you to exchange messages with your friends without anyone else being able to read them. Use the box below to encode and decode messages.")
-        val msg = c.field("Message:", multiline = true)
-        val dir = c.radios("Encode", "Decode")
+        c.p(tr("This super secure system will allow you to exchange messages with your friends without anyone else being able to read them. Use the box below to encode and decode messages."))
+        val msg = c.field(tr("Message:"), multiline = true)
+        val dir = c.radios(tr("Encode"), tr("Decode"))
         val out = c.result()
-        c.button("Submit") {
+        c.button(tr("Submit")) {
             out.clear()
             try {
                 val m = msg.str()
                 val r = if (dir.checkedRadioButtonId == 1001) String(xor(Base64.decode(m, Base64.DEFAULT), key), Charsets.ISO_8859_1)
                         else Base64.encodeToString(xor(m.toByteArray(Charsets.ISO_8859_1), key), Base64.NO_WRAP)
-                out.text("Message:"); out.pre(r)
+                out.text(tr("Message:")); out.pre(r)
             } catch (e: Exception) { out.err(e.message ?: "error") }
         }
         val l = ui.card()
-        l.p("You have intercepted the following message, decode it and log in below.")
+        l.p(tr("You have intercepted the following message, decode it and log in below."))
         l.code("Lg4WGlQZChhSFBYSEB8bBQtPGxdNQSwEHREOAQY=")
-        val pw = l.field("Password:", password = true)
+        val pw = l.field(tr("Password:"), password = true)
         val lr = l.result()
-        l.button("Login") { lr.clear(); if (pw.str() == "Olifant") lr.ok("Welcome back user") else lr.err("Login Failed") }
+        l.button(tr("Login")) { lr.clear(); if (pw.str() == "Olifant") lr.ok("Welcome back user") else lr.err("Login Failed") }
     }
 
     private fun medium(ui: Ui) {
         val key = "ik ben een aardbei".toByteArray(Charsets.ISO_8859_1).copyOf(16)
         val c = ui.card()
-        c.p("You have managed to get hold of three session tokens for an application you think is using poor cryptography to protect its secrets:")
-        c.p("Sooty (admin), session expired"); c.code("e287af752ed3f9601befd45726785bd9b85bb230876912bf3c66e50758b222d0837d1e6b16bfae07b776feb7afe576305aec34b41499579d3fb6acc8dc92fd5fcea8743c3b2904de83944d6b19733cdb48dd16048ed89967c250ab7f00629dba")
-        c.p("Sweep (user), session expired"); c.code("3061837c4f9debaf19d4539bfa0074c1b85bb230876912bf3c66e50758b222d083f2d277d9e5fb9a951e74bee57c77a3caeb574f10f349ed839fbfd223903368873580b2e3e494ace1e9e8035f0e7e07")
-        c.p("Soo (user), session valid"); c.code("5fec0b1c993f46c8bad8a5c8d9bb9698174d4b2659239bbc50646e14a70becef83f2d277d9e5fb9a951e74bee57c77a3c9acb1f268c06c5e760a9d728e081fab65e83b9f97e65cb7c7c4b8427bd44abc16daa00fd8cd0105c97449185be77ef5")
-        c.p("Based on the documentation, you know the format of the token is:")
+        c.p(tr("You have managed to get hold of three session tokens for an application you think is using poor cryptography to protect its secrets:"))
+        c.p(tr("Sooty (admin), session expired")); c.code("e287af752ed3f9601befd45726785bd9b85bb230876912bf3c66e50758b222d0837d1e6b16bfae07b776feb7afe576305aec34b41499579d3fb6acc8dc92fd5fcea8743c3b2904de83944d6b19733cdb48dd16048ed89967c250ab7f00629dba")
+        c.p(tr("Sweep (user), session expired")); c.code("3061837c4f9debaf19d4539bfa0074c1b85bb230876912bf3c66e50758b222d083f2d277d9e5fb9a951e74bee57c77a3caeb574f10f349ed839fbfd223903368873580b2e3e494ace1e9e8035f0e7e07")
+        c.p(tr("Soo (user), session valid")); c.code("5fec0b1c993f46c8bad8a5c8d9bb9698174d4b2659239bbc50646e14a70becef83f2d277d9e5fb9a951e74bee57c77a3c9acb1f268c06c5e760a9d728e081fab65e83b9f97e65cb7c7c4b8427bd44abc16daa00fd8cd0105c97449185be77ef5")
+        c.p(tr("Based on the documentation, you know the format of the token is:"))
         c.code("{\n    \"user\": \"example\",\n    \"ex\": 1723620372,\n    \"level\": \"user\",\n    \"bio\": \"blah\"\n}")
-        c.p("You also spot this comment in the docs: \"To ensure your security, we use aes-128-ecb throughout our application.\"\n\nManipulate the session tokens you have captured to log in as Sweep with admin privileges.")
-        val tok = c.field("Token:", multiline = true)
+        c.p(tr("You also spot this comment in the docs: \"To ensure your security, we use aes-128-ecb throughout our application.\"\n\nManipulate the session tokens you have captured to log in as Sweep with admin privileges."))
+        val tok = c.field(tr("Token:"), multiline = true)
         val r = c.result()
-        c.button("Submit") {
+        c.button(tr("Submit")) {
             r.clear()
             try {
                 val t = tok.str().trim()
@@ -256,29 +256,29 @@ object CryptoPage : Page() {
                 val bin = hex2bin(t) ?: throw Exception("Decryption failed")
                 val dec = try { Cipher.getInstance("AES/ECB/PKCS5Padding").apply { init(Cipher.DECRYPT_MODE, SecretKeySpec(key, "AES")) }.doFinal(bin) } catch (e: Exception) { throw Exception("Decryption failed") }
                 val o = try { JSONObject(String(dec, Charsets.UTF_8)) } catch (e: Exception) { throw Exception("Could not decode JSON object.") }
-                if (o.optString("user") == "sweep" && o.optLong("ex") > System.currentTimeMillis() / 1000 && o.optString("level") == "admin") r.ok("Welcome administrator Sweep")
-                else r.warn("Login successful but not as the right user.")
+                if (o.optString("user") == "sweep" && o.optLong("ex") > System.currentTimeMillis() / 1000 && o.optString("level") == "admin") r.ok(tr("Welcome administrator Sweep"))
+                else r.warn(tr("Login successful but not as the right user."))
             } catch (e: Exception) { r.err(e.message ?: "error") }
         }
     }
 
     private fun high(ui: Ui, gcm: Boolean) {
         val c = ui.card()
-        c.p(if (!gcm) "You have managed to steal the following token from a user of the Prognostication application." else "You have managed to steal the following token from a user of the Impervious application.")
+        c.p(if (!gcm) tr("You have managed to steal the following token from a user of the Prognostication application.") else tr("You have managed to steal the following token from a user of the Impervious application."))
         val token = if (gcm) tokenImpossible() else tokenHigh()
         c.code(token)
-        c.p(if (!gcm) "You can use the form below to provide the token to access the system. You have two challenges, first, decrypt the token to find out the secret it contains, and then create a new token to access the system as a other users. See if you can make yourself an administrator."
-            else "This being the impossible level, you should not be able to mess with the token in any useful way but feel free to try below.")
-        val tf = c.field("Token (JSON POSTed as application/json)", token, multiline = true)
+        c.p(if (!gcm) tr("You can use the form below to provide the token to access the system. You have two challenges, first, decrypt the token to find out the secret it contains, and then create a new token to access the system as a other users. See if you can make yourself an administrator.")
+            else tr("This being the impossible level, you should not be able to mess with the token in any useful way but feel free to try below."))
+        val tf = c.field(tr("Token (JSON POSTed as application/json)"), token, multiline = true)
         val msg = c.result()
-        c.button("Submit") { b ->
+        c.button(tr("Submit")) { b ->
             val body = tf.str()
             Bg.run(b) {
                 val r = checkToken(gcm, body)
                 msg.clear()
-                if (r.optInt("status") == 200) msg.ok("Welcome back ${r.optString("user")} (${r.optString("level")})")
+                if (r.optInt("status") == 200) msg.ok(tr("Welcome back {0} ({1})", r.optString("user"), r.optString("level")))
                 else msg.err("Error: ${r.optString("message")}")
-                msg.text("Raw response from source/check_token_${if (gcm) "impossible" else "high"}.php:")
+                msg.text(tr("Raw response from source/check_token_{0}.php:", if (gcm) "impossible" else "high"))
                 msg.pre(r.toString())
             }
         }

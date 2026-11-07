@@ -1,0 +1,61 @@
+<div class="body_padded">
+	<h1>Help - SQL Injection (Blind)</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>परिचय (About)</h3>
+		<p>जब कोई हमलावर SQL Injection हमले करता है, तो कभी-कभी सर्वर डेटाबेस सर्वर से ऐसे एरर मैसेज के साथ जवाब देता है जिसमें शिकायत होती है कि SQL query का सिंटैक्स गलत है।
+			Blind SQL Injection सामान्य SQL Injection जैसा ही होता है, सिवाय इसके कि जब कोई हमलावर किसी एप्लीकेशन का फायदा उठाने की कोशिश करता है, तो उपयोगी एरर मैसेज मिलने के बजाय,
+			उसे डेवलपर द्वारा तय किया गया एक सामान्य पेज मिलता है। इससे संभावित SQL Injection हमले का फायदा उठाना अधिक कठिन हो जाता है लेकिन असंभव नहीं होता।
+			हम हमलावर SQL statements के ज़रिए True और False सवालों की एक श्रृंखला पूछकर और वेब एप्लीकेशन के जवाब (वैलिड एंट्री लौटना या 404 header सेट होना) पर नज़र रखकर अभी भी डेटा चुरा सकता है।</p>
+
+		<p>"time based" injection मेथड का इस्तेमाल अक्सर तब किया जाता है जब पेज के जवाब में कोई विज़ुअल फीडबैक नहीं मिलता (इसलिए यह एक blind attack है)।
+		 	इसका मतलब है कि हमलावर यह देखने के लिए इंतज़ार करेगा कि पेज को जवाब देने में कितना समय लगता है। अगर इसमें सामान्य से अधिक समय लगता है, तो उनकी query सफल रही।</p>
+
+		<br /><hr /><br />
+
+		<h3>उद्देश्य (Objective)</h3>
+		<p>Blind SQL attack के ज़रिए SQL डेटाबेस सॉफ्टवेयर का वर्ज़न ढूँढें।</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>यह SQL query RAW input का इस्तेमाल करती है जिसे सीधे हमलावर द्वारा नियंत्रित किया जाता है। उन्हें बस query को escape करना है और फिर वे 
+			अपनी इच्छानुसार कोई भी SQL query execute करने में सक्षम हो जाते हैं।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">?id=1' AND sleep 5&Submit=Submit</span>.</pre>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>Medium level में "<a href="https://secure.php.net/manual/en/function.mysql-real-escape-string.php" target="_blank">mysql_real_escape_string()</a>" 
+			फंक्शन के साथ SQL injection सुरक्षा के एक रूप का इस्तेमाल किया जाता है।
+			हालांकि SQL query में पैरामीटर के आस-पास कोट्स (quotes) न होने के कारण, यह query को बदलने से पूरी तरह सुरक्षित नहीं रख पाएगा।</p>
+
+		<p>टेक्स्ट बॉक्स को एक पहले से तय ड्रॉपडाउन लिस्ट से बदल दिया गया है और फॉर्म सबमिट करने के लिए POST का इस्तेमाल किया जाता है।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">?id=1 AND sleep 3&Submit=Submit</span>.</pre>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>यह Low level के बहुत समान है, हालांकि इस बार हमलावर अलग तरीके से वैल्यू इनपुट कर रहा है।
+			इनपुट वैल्यूज़ को GET request के बजाय किसी दूसरे पेज पर सेट किया जा रहा है।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">ID: 1' AND sleep 10&Submit=Submit</span>.
+			Spoiler (जवाब): <span class="spoiler">Should be able to cut out the middle man.</span>.</pre>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>अब queries parameterized queries (dynamic होने के बजाय) हैं। इसका मतलब है कि query को डेवलपर द्वारा तय किया गया है,
+			और यह अंतर करता है कि कौन से हिस्से कोड हैं, और बाकी डेटा है।</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>संदर्भ (Reference): <a href="https://owasp.org/www-community/attacks/Blind_SQL_Injection" target="_blank">https://owasp.org/www-community/attacks/Blind_SQL_Injection</a></p>
+</div>

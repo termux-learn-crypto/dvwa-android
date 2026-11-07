@@ -1,0 +1,168 @@
+<h2><font color='#1B5E20'>DVWA Offline – Kaise Use Karein (User Guide)</font></h2>
+<h3><font color='#1B5E20'>1. DVWA kya hai?</font></h3>
+<p>DVWA (Damn Vulnerable Web Application) ek aisi practice app hai jo <strong>jaan-boojh kar vulnerable</strong> banayi gayi hai. Aap iska use yeh seekhne ke liye karte hain ki common web attacks kaise kaam karte hain (SQL Injection, XSS, CSRF aur baaki sab) aur accha code unhe kaise rokta hai.</p>
+<ul>
+<li>Yeh Android edition <strong>fully native aur offline</strong> hai: isme koi WebView nahi hai, koi internet permission nahi hai, aur koi web server nahi hai. Har "attack" sirf app ke apne private data ko touch karta hai.</li>
+<li><strong>Legal use only:</strong> yahan practice karein, ya un systems par jin par aapka haq hai ya jinko test karne ki aapke paas written permission hai. In payloads ko kabhi bhi real websites par try na karein.</li>
+<li>XSS, CSP Bypass aur JavaScript Attacks <strong>natively simulate</strong> hote hain: yahan koi browser engine nahi hai, isliye app output ko analyse karti hai aur real JavaScript run karne ke bajaye simulated alert dialog ke saath "⚠ XSS fired" dikhati hai.</li>
+</ul>
+<h3><font color='#1B5E20'>2. Login kaise karein</font></h3>
+<ul>
+<li>Default login: <tt><font color='#B71C1C'>admin</font></tt> / <tt><font color='#B71C1C'>password</font></tt> (username / password)</li>
+<li>Baaki accounts: <tt><font color='#B71C1C'>gordonb</font></tt> / <tt><font color='#B71C1C'>abc123</font></tt>, <tt><font color='#B71C1C'>1337</font></tt> / <tt><font color='#B71C1C'>charley</font></tt>, <tt><font color='#B71C1C'>pablo</font></tt> / <tt><font color='#B71C1C'>letmein</font></tt>, <tt><font color='#B71C1C'>smithy</font></tt> / <tt><font color='#B71C1C'>password</font></tt></li>
+<li><strong>Logout</strong> use karein (menu ☰ ya phir ⋮ toolbar menu se) user switch karne ke liye. Kuch modules (jaise ki Authorisation Bypass) ke liye non-admin user ki zaroorat padti hai.</li>
+<li>App ki language aap jab chahein change kar sakte hain: login screen par 🌐 button se, drawer mein Settings ke andar <strong>Language</strong> se, ya phir ⋮ menu se.</li>
+</ul>
+<h3><font color='#1B5E20'>3. Setup / Reset DB</font></h3>
+<ul>
+<li>Menu ☰ kholiye → <strong>Setup / Reset DB</strong> → <strong>Create / Reset Database</strong> dabaiye.</li>
+<li>Yeh action 5 users aur unke passwords ko restore kar deta hai, guestbook ko khali kar deta hai, uploaded files delete kar deta hai aur session data clear kar deta hai.</li>
+<li>Isko tab use karein jab aapne koi password change kiya ho (CSRF, CAPTCHA) aur login na kar pa rahe hon, ya jab Stored XSS entries ki wajah se guestbook messy ho gaya ho.</li>
+</ul>
+<h3><font color='#1B5E20'>4. Security levels</font></h3>
+<p>☰ menu kholiye → <strong>DVWA Security</strong>, ek level select karein aur <strong>Submit</strong> dabayein. Har module par level badge current level show karta hai.</p>
+<ul>
+<li><strong>Low</strong> – koi protection nahi hai. Basic attack sikhne ke liye sabse best hai.</li>
+<li><strong>Medium</strong> – developer ne code protect karne ki koshish ki par galtiyan kar di (weak filters, blacklists).</li>
+<li><strong>High</strong> – zyada mushkil ya alag protections, jaise koi CTF challenge ho. Kuch attacks ke liye ek trick ki zaroorat padti hai.</li>
+<li><strong>Impossible</strong> – secure version. Sahi defence sikhne ke liye iske source code ko baaki levels ke saath compare karein.</li>
+</ul>
+<p>Tip: har module ko Low se start karein, phir ek-ek karke upar ke levels par move karein.</p>
+<h3><font color='#1B5E20'>5. Har module screen ke tools</font></h3>
+<ul>
+<li><strong>View Source</strong> – current level ka real DVWA PHP code dikhata hai. Tabs Low / Medium / High / Impossible ke beech switch karte hain. Code ko kabhi translate nahi kiya jata.</li>
+<li><strong>Compare All</strong> – saare chaaro levels ek ke baad ek dikhata hai, taaki aap dekh sakein ki kya change hua hai.</li>
+<li><strong>View Help</strong> – vulnerability, goal, aur har level ke hints (red color mein spoilers) aapki chosen language mein explain karta hai.</li>
+<li><strong>🛠 Intercept &amp; tamper panel</strong> (orange, tap karke kholein) – Burp Suite / browser DevTools ka native replacement hai. Yahan aap hidden form fields, <tt><font color='#B71C1C'>user_token</font></tt>, headers (Referer, User-Agent), cookies, file names, Content-Type, aur client-side limits jaise maxlength ko edit kar sakte hain.</li>
+<li><strong>Go to URL… bar</strong> (⋮ toolbar menu) – ek simulated address bar hai. Kisi bhi page ko directly open karne ke liye koi DVWA path type karein, jaise <tt><font color='#B71C1C'>/vulnerabilities/authbypass/</font></tt> ya <tt><font color='#B71C1C'>/vulnerabilities/sqli/</font></tt>.</li>
+<li><strong>Brute Force wordlist runner</strong> – Brute Force module mein, "Attack helper" card aapki list ke har password ko (ek line mein ek) login par try karta hai, bilkul Burp Intruder ki tarah, aur pehli success milte hi ruk jata hai.</li>
+</ul>
+<h3><font color='#1B5E20'>6. Har module ka walkthrough</font></h3>
+<h4><font color='#E65100'>Brute Force</font></h4>
+<ul>
+<li><strong>Kya try karein:</strong> username <tt><font color='#B71C1C'>admin</font></tt>, phir short wordlist ke sath Attack helper run karein.</li>
+<li><strong>Example:</strong> wordlist mein <tt><font color='#B71C1C'>123456</font></tt>, <tt><font color='#B71C1C'>letmein</font></tt>, <tt><font color='#B71C1C'>password</font></tt> jaise passwords hon.</li>
+<li><strong>Success kaisa dikhta hai:</strong> "Welcome to the password protected area admin" message aur user ka avatar dikhega.</li>
+<li><strong>Impossible kaise bachata hai:</strong> CSRF token, ek random delay aur 3 failed logins ke baad account lock hone ke protection ke sath.</li>
+</ul>
+<h4><font color='#E65100'>Command Injection</font></h4>
+<ul>
+<li><strong>Kya try karein:</strong> IP address ke baad ek aur command chain karein.</li>
+<li><strong>Examples:</strong> <tt><font color='#B71C1C'>127.0.0.1; cat /etc/passwd</font></tt> (Low), <tt><font color='#B71C1C'>127.0.0.1 | whoami</font></tt> (Medium/High).</li>
+<li><strong>Success kaisa dikhta hai:</strong> output me command ka result dikhega (ek simulated Debian shell se; aapke phone par kuch nahi chalega).</li>
+<li><strong>Impossible kaise bachata hai:</strong> IP address ke sirf chaar numeric parts accept karke.</li>
+</ul>
+<h4><font color='#E65100'>CSRF</font></h4>
+<ul>
+<li><strong>Kya try karein:</strong> "Attacker: forged link" card ko use karein taaki logged-in victim ek aisa URL khole jo password change kar de.</li>
+<li><strong>Example:</strong> <tt><font color='#B71C1C'>http://127.0.0.1/vulnerabilities/csrf/?password_new=hacked&amp;password_conf=hacked&amp;Change=Change</font></tt></li>
+<li><strong>Success kaisa dikhta hai:</strong> "⚠ CSRF succeeded — the victim's password was changed". Naye password ke saath dobara login karein ya DB reset karein.</li>
+<li><strong>Impossible kaise bachata hai:</strong> ek anti-CSRF token aur current password ke saath.</li>
+</ul>
+<h4><font color='#E65100'>File Inclusion</font></h4>
+<ul>
+<li><strong>Kya try karein:</strong> <tt><font color='#B71C1C'>?page=</font></tt> value ko change karke doosri files read karne ki koshish karein.</li>
+<li><strong>Examples:</strong> <tt><font color='#B71C1C'>../../../../../etc/passwd</font></tt> (Low), <tt><font color='#B71C1C'>....//....//....//etc/passwd</font></tt> (Medium), <tt><font color='#B71C1C'>file:///etc/passwd</font></tt> (High).</li>
+<li><strong>Success kaisa dikhta hai:</strong> file ka content dikhne lagega, jaise <tt><font color='#B71C1C'>../../hackable/flags/fi.php</font></tt> se hidden quotes.</li>
+<li><strong>Impossible kaise bachata hai:</strong> ek fixed allow-list ke sath file names ko validate karta hai.</li>
+</ul>
+<h4><font color='#E65100'>File Upload</font></h4>
+<ul>
+<li><strong>Kya try karein:</strong> ek image ki jagah ek PHP webshell upload kariye, aur fir usko request kariye.</li>
+<li><strong>Example:</strong> file body <tt><font color='#B71C1C'>&lt;?php system($_GET['cmd']); ?&gt;</font></tt> ko <tt><font color='#B71C1C'>shell.php</font></tt> ke taur par save kariye, aur fir <tt><font color='#B71C1C'>/hackable/uploads/shell.php?cmd=id</font></tt> request kariye.</li>
+<li><strong>Success kaisa dikhta hai:</strong> "⚠ Server executed shell.php as PHP". Medium par tamper panel mein Content-Type ko change karke <tt><font color='#B71C1C'>image/png</font></tt> kar dein; High par GIF89a magic bytes add kariye aur File Inclusion ka use kariye.</li>
+<li><strong>Impossible kaise bachata hai:</strong> extension, type aur real image content ko check karke, fir file ko re-encode aur rename karne ke zariye protection deta hai.</li>
+</ul>
+<h4><font color='#E65100'>Insecure CAPTCHA</font></h4>
+<ul>
+<li><strong>Kya try karein:</strong> tamper panel mein hidden fields ko edit karke CAPTCHA step ko skip karein.</li>
+<li><strong>Example:</strong> Low level par <tt><font color='#B71C1C'>step</font></tt> ko <tt><font color='#B71C1C'>2</font></tt> set karein; Medium par <tt><font color='#B71C1C'>passed_captcha</font></tt> ko bhi <tt><font color='#B71C1C'>true</font></tt> set karein; High par User-Agent <tt><font color='#B71C1C'>reCAPTCHA</font></tt> aur response <tt><font color='#B71C1C'>hidd3n_valu3</font></tt> use karein.</li>
+<li><strong>Success kaisa dikhta hai:</strong> Bina CAPTCHA solve kiye "Password Changed." dikhega.</li>
+<li><strong>Impossible kaise bachata hai:</strong> Ek hi request mein CAPTCHA, ek token, aur current password ko check karke.</li>
+</ul>
+<h4><font color='#E65100'>SQL Injection</font></h4>
+<ul>
+<li><strong>Kya try karein:</strong> SQL query ko break karke doosri rows aur tables padhne ki koshish karein.</li>
+<li><strong>Examples:</strong> <tt><font color='#B71C1C'>1' OR '1'='1</font></tt> aur <tt><font color='#B71C1C'>1' UNION SELECT user, password FROM users#</font></tt> (Low); tamper override mein <tt><font color='#B71C1C'>1 UNION SELECT user, password FROM users</font></tt> (Medium).</li>
+<li><strong>Success kaisa dikhta hai:</strong> saare users aur unke password hashes list ho jaate hain.</li>
+<li><strong>Impossible kaise bachata hai:</strong> prepared statements (parameterised queries) ka use karke.</li>
+</ul>
+<h4><font color='#E65100'>SQL Injection (Blind)</font></h4>
+<ul>
+<li><strong>Kya try karein:</strong> true/false questions poochhiye, kyunki page sirf "exists" ya "MISSING" batata hai.</li>
+<li><strong>Examples:</strong> <tt><font color='#B71C1C'>1' AND 1=1#</font></tt> (exists) vs <tt><font color='#B71C1C'>1' AND 1=2#</font></tt> (missing); time-based <tt><font color='#B71C1C'>1' AND sleep(3)#</font></tt>.</li>
+<li><strong>Success kaisa dikhta hai:</strong> aap message ya dikhaye gaye response time se true aur false mein farq pata laga sakte hain.</li>
+<li><strong>Impossible kaise bachata hai:</strong> prepared statements aur numeric check ke sath.</li>
+</ul>
+<h4><font color='#E65100'>Weak Session IDs</font></h4>
+<ul>
+<li><strong>Kya try karein:</strong> kai baar "Generate" press kariye aur <tt><font color='#B71C1C'>dvwaSession</font></tt> values ko dekhiye.</li>
+<li><strong>Example:</strong> Low mein 1, 2, 3… count hota hai; Medium current time hota hai; High ek counter ka md5 hash hota hai.</li>
+<li><strong>Success kaisa dikhta hai:</strong> aap next session ID ka andaza laga sakte hain.</li>
+<li><strong>Impossible kaise bachata hai:</strong> ek random, hashed value aur Secure/HttpOnly cookie flags ke saath.</li>
+</ul>
+<h4><font color='#E65100'>XSS (DOM)</font></h4>
+<ul>
+<li><strong>Kya try karein:</strong> address bar URL me <tt><font color='#B71C1C'>default=</font></tt> ke baad edit karein.</li>
+<li><strong>Examples:</strong> <tt><font color='#B71C1C'>?default=&lt;script&gt;alert(1)&lt;/script&gt;</font></tt> (Low); <tt><font color='#B71C1C'>?default=&lt;/option&gt;&lt;/select&gt;&lt;img src=x onerror=alert(1)&gt;</font></tt> (Medium); <tt><font color='#B71C1C'>?default=English#&lt;script&gt;alert(1)&lt;/script&gt;</font></tt> (High).</li>
+<li><strong>Success kaisa dikhta hai:</strong> "⚠ XSS fired" aur ek simulated alert dialog dikhega.</li>
+<li><strong>Impossible kaise bachata hai:</strong> input ko decode nahi karta, isliye yeh kabhi bhi HTML ki tarah parse nahi hota.</li>
+</ul>
+<h4><font color='#E65100'>XSS (Reflected)</font></h4>
+<ul>
+<li><strong>Kya try karein:</strong> name field ke andar HTML/JavaScript daaliye.</li>
+<li><strong>Examples:</strong> <tt><font color='#B71C1C'>&lt;script&gt;alert(document.cookie)&lt;/script&gt;</font></tt> (Low); <tt><font color='#B71C1C'>&lt;SCRIPT&gt;alert(1)&lt;/SCRIPT&gt;</font></tt> (Medium); <tt><font color='#B71C1C'>&lt;img src=x onerror=alert(1)&gt;</font></tt> (High).</li>
+<li><strong>Success kaisa dikhta hai:</strong> Aapke alert text ke sath "⚠ XSS fired" dikhega.</li>
+<li><strong>Impossible kaise bachata hai:</strong> htmlspecialchars() output encoding aur ek token ke sath karta hai.</li>
+</ul>
+<h4><font color='#E65100'>XSS (Stored)</font></h4>
+<ul>
+<li><strong>Kya try karein:</strong> guestbook mein ek payload ke saath sign karein taaki har visitor use run kare.</li>
+<li><strong>Examples:</strong> message <tt><font color='#B71C1C'>&lt;script&gt;alert(1)&lt;/script&gt;</font></tt> (Low); "Remove client-side maxlength" tick karne ke baad name <tt><font color='#B71C1C'>&lt;svg onload=alert(1)&gt;</font></tt> (Medium/High).</li>
+<li><strong>Success kaisa dikhta hai:</strong> guestbook verdict mein "⚠ XSS fired" dikhega. Clean up karne ke liye Clear Guestbook ya Reset DB ka use karein.</li>
+<li><strong>Impossible kaise bachata hai:</strong> dono fields ko encode karke aur prepared statement use karke defend karta hai.</li>
+</ul>
+<h4><font color='#E65100'>CSP Bypass</font></h4>
+<ul>
+<li><strong>Kya try karein:</strong> ek aise source se script load karein jise Content Security Policy galti se allow kar rahi ho.</li>
+<li><strong>Examples:</strong> Low: <tt><font color='#B71C1C'>https://pastebin.com/raw/…</font></tt> ko simulate kiye gaye content <tt><font color='#B71C1C'>alert(1)</font></tt> ke sath include karein; Medium: <tt><font color='#B71C1C'>&lt;script nonce="TmV2ZXIgZ29pbmcgdG8gZ2l2ZSB5b3UgdXA="&gt;alert(1)&lt;/script&gt;</font></tt>; High: JSONP callback ko change karein, jaise <tt><font color='#B71C1C'>source/jsonp.php?callback=alert(document.cookie)//</font></tt>.</li>
+<li><strong>Success kaisa dikhta hai:</strong> "⚠ CSP allowed the script — it executes (simulated)". Kuch bhi download nahi hota.</li>
+<li><strong>Impossible kaise bachata hai:</strong> ek hard-coded callback ke sath.</li>
+</ul>
+<h4><font color='#E65100'>JavaScript Attacks</font></h4>
+<ul>
+<li><strong>Kya try karein:</strong> <tt><font color='#B71C1C'>success</font></tt> word submit karein ek valid token ke sath.</li>
+<li><strong>Example:</strong> <tt><font color='#B71C1C'>success</font></tt> type karein, tamper panel open karein aur console helper dabayein (jaise <tt><font color='#B71C1C'>generate_token()</font></tt>) taaki hidden token match ho jaye, phir Submit karein.</li>
+<li><strong>Success kaisa dikhta hai:</strong> "Well done!" (Shabaash!) message aata hai.</li>
+<li><strong>Impossible:</strong> yahan koi asli defence nahi hai – client side par kuch bhi change kiya ja sakta hai. Yeh hi sikhna hai.</li>
+</ul>
+<h4><font color='#E65100'>Authorisation Bypass</font></h4>
+<ul>
+<li><strong>Kya try karein:</strong> <tt><font color='#B71C1C'>gordonb</font></tt> / <tt><font color='#B71C1C'>abc123</font></tt> se log in karke bhi admin-only user manager use karein.</li>
+<li><strong>Example:</strong> Low: menu se page open karein ya Go to URL <tt><font color='#B71C1C'>/vulnerabilities/authbypass/</font></tt> par jayein; Medium/High: API console use karke POST <tt><font color='#B71C1C'>{"id":2,"first_name":"Hacked","surname":"ByGordon"}</font></tt> bhejein.</li>
+<li><strong>Success kaisa dikhta hai:</strong> "User updated" message dikhega chahe aap admin na ho.</li>
+<li><strong>Impossible kaise bachata hai:</strong> har API call par user ka role check karke.</li>
+</ul>
+<h4><font color='#E65100'>Open HTTP Redirect</font></h4>
+<ul>
+<li><strong>Kya try karein:</strong> <tt><font color='#B71C1C'>redirect=</font></tt> value ko change karein taaki ek trusted link victim ko kisi aur jagah bhej de.</li>
+<li><strong>Examples:</strong> <tt><font color='#B71C1C'>?redirect=https://example.com</font></tt> (Low); <tt><font color='#B71C1C'>?redirect=//example.com</font></tt> (Medium); <tt><font color='#B71C1C'>?redirect=https://example.com/?a=info.php</font></tt> (High).</li>
+<li><strong>Success kaisa dikhta hai:</strong> "⚠ Open redirect…" – target dikhaya jaata hai, kabhi open nahi hota.</li>
+<li><strong>Impossible kaise bachata hai:</strong> numeric IDs ko fixed pages ke saath map karke.</li>
+</ul>
+<h4><font color='#E65100'>Cryptography Problems</font></h4>
+<ul>
+<li><strong>Low:</strong> "secret" message XOR + Base64 encoded hai. Intercept kiye gaye message ko decode karo aur uske andar wale password ke sath login karo.</li>
+<li><strong>Medium:</strong> session token AES-ECB use karta hai. Sweep ke liye ek valid admin token banane ke liye tokens ke beech mein 16-byte (32 hex) blocks ko swap karo.</li>
+<li><strong>High:</strong> AES-CBC par ek padding-oracle attack: token/IV mein tamper karo aur error messages ko dekho.</li>
+<li><strong>Impossible kaise bachata hai:</strong> AES-GCM (authenticated encryption) ke sath, isliye koi bhi change reject kar diya jata hai.</li>
+</ul>
+<h3><font color='#1B5E20'>7. Troubleshooting (dikkat aaye to)</font></h3>
+<ul>
+<li><strong>Cannot log in after a CSRF/CAPTCHA test:</strong> password change ho gaya hai. Naya password use karein, ya phir reinstall karein – ya kisi aur user se log in karke Setup / Reset DB run karein.</li>
+<li><strong>Strange data or errors in a module:</strong> ☰ → Setup / Reset DB run karein.</li>
+<li><strong>Nothing happens on an XSS payload:</strong> level check karein (higher levels mein zyada filtering hoti hai) aur View Help padhein. Yaad rakhein ki effect simulated hota hai.</li>
+<li><strong>Wrong language:</strong> ise 🌐 Language option se change karein. Android 13+ par aap Settings → Apps → DVWA Offline → Language ka bhi use kar sakte hain.</li>
+<li><strong>App still broken:</strong> APK ko uninstall karke dubara install karein – sara data sirf app ke andar hi stored hota hai.</li>
+<li><strong>Tutorial dobara dekhna hai:</strong> ☰ → Tutorial (first-run slides).</li>
+</ul>

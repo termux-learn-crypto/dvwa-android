@@ -28,11 +28,11 @@ class Db(private val ctx: Context) {
         val log = ArrayList<String>()
         d.execSQL("DROP TABLE IF EXISTS users"); d.execSQL("DROP TABLE IF EXISTS guestbook")
         createTables(d)
-        log += "Database has been created."
-        log += "'users' table was created."
-        log += "Data inserted into 'users' table."
-        log += "'guestbook' table was created."
-        log += "Data inserted into 'guestbook' table."
+        log += tr("Database has been created.")
+        log += tr("'users' table was created.")
+        log += tr("Data inserted into 'users' table.")
+        log += tr("'guestbook' table was created.")
+        log += tr("Data inserted into 'guestbook' table.")
         return log
     }
 

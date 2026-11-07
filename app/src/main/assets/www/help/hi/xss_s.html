@@ -1,0 +1,55 @@
+<div class="body_padded">
+	<h1>Help - Cross Site Scripting (Stored)</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<p>"Cross-Site Scripting (XSS)" हमले एक प्रकार की इंजेक्शन समस्या हैं, जिनमें किसी दुर्भावनापूर्ण स्क्रिप्ट को सामान्य और भरोसेमंद वेबसाइटों में इंजेक्ट किया जाता है।
+			XSS हमले तब होते हैं जब कोई हमलावर किसी वेब एप्लिकेशन का उपयोग करके किसी अन्य अंत-उपयोगकर्ता (end user) को दुर्भावनापूर्ण कोड भेजता है, जो आमतौर पर ब्राउज़र-साइड स्क्रिप्ट के रूप में होता है। 
+			जो कमियाँ इन हमलों को सफल होने देती हैं, वे काफी व्यापक हैं और वहाँ होती हैं जहाँ कोई वेब एप्लिकेशन यूजर से इनपुट लेकर बिना उसकी वैलिडेटिंग या एन्कोडिंग किए आउटपुट में उपयोग करता है।</p>
+
+		<p>एक हमलावर किसी अनजान यूजर को दुर्भावनापूर्ण स्क्रिप्ट भेजने के लिए XSS का उपयोग कर सकता है। अंत-उपयोगकर्ता के ब्राउज़र के पास यह जानने का कोई तरीका नहीं होता कि स्क्रिप्ट पर भरोसा नहीं किया जाना चाहिए,
+			और वह JavaScript को एक्सेक्यूट कर देता है। चूँकि उसे लगता है कि स्क्रिप्ट किसी भरोसेमंद स्रोत से आई है, इसलिए वह दुर्भावनापूर्ण स्क्रिप्ट आपके ब्राउज़र द्वारा उस साइट के साथ रखे गए और उपयोग किए जाने वाले किसी भी कुकीज़ (cookies), सेशन टोकन (session tokens), या अन्य संवेदनशील जानकारी तक पहुँच सकती है। 
+			ये स्क्रिप्ट HTML पेज की सामग्री को दोबारा भी लिख सकती हैं।</p>
+
+		<p>XSS डेटाबेस में स्टोर (stored) होता है। XSS तब तक स्थायी (permanent) रहता है, जब तक डेटाबेस रीसेट नहीं किया जाता या पेलोड को मैन्युअली हटाया नहीं जाता।</p>
+
+		<br /><hr /><br />
+
+		<h3>उद्देश्य (Objective)</h3>
+		<p>सभी को अपनी पसंद के किसी वेब पेज पर रीडायरेक्ट (redirect) करें।</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>Low level अनुरोधित इनपुट को आउटपुट टेक्स्ट में उपयोग करने से पहले उसकी जाँच (check) नहीं करता है।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">Either name or message field: &lt;script&gt;alert("XSS");&lt;/script&gt;</span>.</pre>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>डेवलपर ने कुछ सुरक्षा जोड़ी है, हालाँकि हर फील्ड के लिए ऐसा एक ही तरीके से नहीं किया गया है।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">name field: &lt;sCriPt&gt;alert("XSS");&lt;/sCriPt&gt;</span>.</pre>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>डेवलपर का मानना है कि उन्होंने "&lt;s*c*r*i*p*t" पैटर्न को हटाकर सभी स्क्रिप्ट के उपयोग को अक्षम (disable) कर दिया है।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">HTML events</span>.</pre>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>इनबिल्ट PHP फंक्शंस (जैसे "<a href="https://secure.php.net/manual/en/function.htmlspecialchars.php" target="_blank">htmlspecialchars()</a>") का उपयोग करके, 
+			किसी भी ऐसे मान (value) को एस्केप करना संभव है जो इनपुट के व्यवहार को बदल सकता है।</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>संदर्भ (Reference): <a href="https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)" target="_blank">https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)</a></p>
+</div>

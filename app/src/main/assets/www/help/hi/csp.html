@@ -1,0 +1,62 @@
+<div class="body_padded">
+	<h1>Help - Content Security Policy (CSP) Bypass</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>परिचय (About)</h3>
+		<p>Content Security Policy (CSP) का उपयोग यह परिभाषित करने के लिए किया जाता है कि स्क्रिप्ट और अन्य संसाधन (resources) कहाँ से लोड या निष्पादित (execute) किए जा सकते हैं। यह मॉड्यूल डेवलपर्स द्वारा की जाने वाली आम गलतियों के आधार पर पॉलिसी कोバイपास (bypass) करने के तरीकों के बारे में बताएगा।</p>
+		<p>इनमें से कोई भी कमज़ोरी (vulnerability) असल में CSP में कोई कमज़ोरी नहीं है, बल्कि यह इसके लागू करने के तरीके (implementation) में कमज़ोरियाँ हैं।</p>
+
+		<br /><hr /><br />
+
+		<h3>उद्देश्य (Objective)</h3>
+		<p>Content Security Policy (CSP) को bypass करें और पेज में JavaScript निष्पादित करें।</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>उन सभी स्रोतों (sources) को खोजने के लिए पॉलिसी की जाँच करें जिनका उपयोग बाहरी स्क्रिप्ट फ़ाइलों को होस्ट करने के लिए किया जा सकता है।</p>
+		<p>यह अभ्यास मूल रूप से Pastebin के साथ काम करने के लिए लिखा गया था, फिर Hastebin के लिए अपडेट किया गया, फिर Toptal के लिए, लेकिन इन सभी ने काम करना बंद कर दिया क्योंकि इन्होंने ऐसे विभिन्न हेडर (headers) सेट किए जो डाउनलोड होने के बाद ब्राउज़र को JavaScript को निष्पादित करने से रोकते हैं। तब से दो नई सेवाओं की पहचान की गई है, UNPKG और jsDelivr, पहली NPM पैकेज के लिए एक प्रॉक्सी है, और दूसरी GitHub फ़ाइलों के लिए। दोनों को किसी भी फ़ाइल तक रॉ एक्सेस (raw access) की अनुमति देने के लिए डिज़ाइन किया गया है और ये ऐसा कोई हेडर सेट नहीं करती हैं जो इंजेक्शन को रोके।
+		</p>
+		<p>मैंने अपनी साइट पर कई फ़ाइलें भी रखी हैं जो यह प्रदर्शित करने में मदद करती हैं कि कैसे विभिन्न हेडर और फ़ाइल एक्सटेंशन निष्पादन (execution) को अवरुद्ध (block) कर सकते हैं।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">
+https://cdn.jsdelivr.net/gh/digininja/csp_bypass/alert.js - Using jsDelivr to server a JavaScript file stored on GitHub.
+https://unpkg.com/@digininja/csp_bypass@1.0.0/index.js - Using UNPKG to access a JavaScript file in an NPM package.
+https://digi.ninja/dvwa/alert.js - Will work, this is a normal JavaScript file served with the correct headers.
+https://digi.ninja/dvwa/alert.txt - This will not work as it has the wrong content type set by the web server due to its file extension.
+https://digi.ninja/dvwa/cookie.js - This will work and will show your cookies
+https://digi.ninja/dvwa/forced_download.js - As the name says, the server sets the "Content-Disposition: attachment" header for this to force the browser to download it rather than execute it.
+https://digi.ninja/dvwa/wrong_content_type.js - This will not work as the web server ignores the file extension and forces the content type to get set as "plain/text" which prevents the browser executing it.</span></pre>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>CSP पॉलिसी हमलावरों द्वारा इनलाइन स्क्रिप्ट (inline scripts) को जोड़ने से रोकने के लिए nonce का उपयोग करने का प्रयास करती है।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">Examine the nonce and see how it varies (or doesn't).</span></pre>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>पेज source/jsonp.php पर एक JSONP कॉल करता है और कॉल करने के लिए फ़ंक्शन का नाम पास करता है, आपको कॉलबैक फ़ंक्शन को बदलने के लिए jsonp.php स्क्रिप्ट को संशोधित (modify) करने की आवश्यकता है।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">The JavaScript on the page will execute whatever is returned by the page, changing this to your own code will execute that instead</span></pre>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>
+			यह लेवल High Level का एक अपडेटेड रूप है जहाँ JSONP कॉल में इसका कॉलबैक फ़ंक्शन हार्डकोडेड (hardcoded) होता है और CSP पॉलिसी केवल बाहरी स्क्रिप्ट की अनुमति देने के लिए लॉक होती है।
+		</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>संदर्भ (Reference): <a href="https://content-security-policy.com/" target="_blank">https://content-security-policy.com/</a></p>
+	<p>संदर्भ (Reference): <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP" target="_blank">https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP</a></p>
+	<p>संदर्भ (Reference): <a href="https://blog.mozilla.org/security/2014/10/04/csp-for-the-web-we-have/" target="_blank">https://blog.mozilla.org/security/2014/10/04/csp-for-the-web-we-have/</a></p>
+</div>

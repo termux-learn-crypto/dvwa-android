@@ -1,0 +1,62 @@
+<div class="body_padded">
+	<h1>Help - Command Injection</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>Parichay (About)</h3>
+		<p>Command injection attack ka main maqsad vulnerable application mein attacker dwara specify kiye gaye commands ko inject aur execute karna hota hai.
+			Aise situations mein, jo application unwanted system commands execute karti hai, woh ek pseudo system shell ki tarah kaam karti hai, aur attacker ise
+			kisi bhi authorized system user ki tarah use kar sakta hai. Halanki, commands wahi privileges aur environment ke sath execute hote hain jo web service ke paas hote hain.</p>
+
+		<p>Command injection attacks zyadatar cases mein input data ki sahi validation na hone ki wajah se possible hote hain, jise attacker manipulate kar sakta hai
+			(forms, cookies, HTTP headers etc.).</p>
+
+		<p>Operating Systems (OS) jaise ki Linux aur Windows mein syntax aur commands alag-alag ho sakte hain, jo ki unke desired actions par depend karta hai.</p>
+
+		<p>Is attack ko "Remote Command Execution (RCE)" bhi kaha ja sakta hai.</p>
+
+		<br /><hr /><br />
+
+		<h3>Objective (lakshya)</h3>
+		<p>RCE ke through remotely pata lagayein ki OS par web service ka user kaun hai, aur machine ka hostname kya hai.</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>Isme <u>kai PHP functions</u> mein se kisi ek mein direct input diya ja sakta hai jo OS par commands execute karenge. Designed command se escape karke
+			unintentional actions execute karna possible hai.</p>
+		<p>Yeh request mein ye jod kar kiya ja sakta hai, "ek baar command successfully execute ho jaye, toh yeh command run karo".
+		<pre>Spoiler (jawab): <span class="spoiler">To add a command "&&"</span>. Example: <span class="spoiler">127.0.0.1 && dir</span>.</pre>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>Developer ne command injection ki kuch problems ke baare mein padha hai, aur input ko filter karne ke liye alag-alag pattern patching lagayi hai. Halanki, yeh kaafi nahi hai.</p>
+		<p>Desired command se bahar nikalne ke liye aur bhi alag-alag system syntaxes ka use kiya ja sakta hai.</p>
+		<pre>Spoiler (jawab): <span class="spoiler">e.g. background the ping command</span>.</pre>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>High level mein, developer wapas drawing board par jata hai aur aur bhi zyada patterns match karne ke liye dalta hai. Lekin yeh bhi kaafi nahi hai.</p>
+		<p>Developer ne filters mein shayad thodi si typo kar di hai aur use lagta hai ki ek specific PHP command use is galti se bacha legi.</p>
+		<pre>Spoiler (jawab): <span class="spoiler"><a href="https://secure.php.net/manual/en/function.trim.php" target="_blank">trim()</a>
+			removes all leading & trailing spaces, right?</span>.</pre>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>Impossible level mein, challenge ko phir se likha gaya hai, taaki sirf ek bohot hi strict input allow ho. Agar yeh match nahi karta aur ek specific result nahi deta,
+			toh ise execute nahi hone diya jayega. "Black listing" filtering (koi bhi input allow karna aur unwanted ko hatana) ke bajaye, yeh "white listing" use karta hai (sirf kuch specific values allow karna).</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>Reference: <a href="https://owasp.org/www-community/attacks/Command_Injection" target="_blank">https://owasp.org/www-community/attacks/Command_Injection</a></p>
+</div>

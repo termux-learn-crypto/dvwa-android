@@ -1,0 +1,60 @@
+<div class="body_padded">
+	<h1>Help - SQL Injection</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>परिचय (About)</h3>
+		<p>एक SQL Injection अटैक में क्लाइंट से एप्लीकेशन के इनपुट डेटा के माध्यम से SQL query को डालना या "inject" करना शामिल होता है।
+			एक सफल SQL Injection एक्सप्लॉइट डेटाबेस से संवेदनशील डेटा पढ़ सकता है, डेटाबेस डेटा को संशोधित कर सकता है (insert/update/delete), डेटाबेस पर एडमिनिस्ट्रेशन ऑपरेशन निष्पादित कर सकता है
+			(जैसे DBMS को बंद करना), DBMS फाइल सिस्टम पर मौजूद किसी दी गई फाइल की सामग्री को पुनर्प्राप्त कर सकता है (load_file) और कुछ मामलों में ऑपरेटिंग सिस्टम को कमांड जारी कर सकता है।</p>
+
+		<p>SQL Injection अटैक एक प्रकार का injection अटैक है, जिसमें पूर्वनिर्धारित SQL commands के निष्पादन को प्रभावित करने के लिए डेटा-प्लेन इनपुट में SQL commands को inject किया जाता है।</p>
+
+		<p>इस अटैक को "SQLi" भी कहा जा सकता है।</p>
+
+		<br /><hr /><br />
+
+		<h3>उद्देश्य (Objective)</h3>
+		<p>डेटाबेस में 5 users हैं, जिनकी id 1 से 5 तक है। आपका मिशन... SQLi के जरिए उनके पासवर्ड चुराना है।</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>SQL query कच्चे (RAW) इनपुट का उपयोग करती है जो सीधे हमलावर के नियंत्रण में होता है। उन्हें केवल query से बाहर निकलना (escape करना) होता है और फिर वे
+			अपनी इच्छानुसार कोई भी SQL query निष्पादित करने में सक्षम होते हैं।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">?id=a' UNION SELECT "text1","text2";-- -&Submit=Submit</span>.</pre>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>Medium level SQL injection सुरक्षा के एक रूप का उपयोग करता है, जिसमें
+			"<a href="https://secure.php.net/manual/en/function.mysql-real-escape-string.php" target="_blank">mysql_real_escape_string()</a>" फंक्शन होता है।
+			हालाँकि SQL query में पैरामीटर के चारों ओर कोट्स (quotes) न होने के कारण, यह query को बदले जाने से पूरी तरह सुरक्षित नहीं करेगा।</p>
+
+		<p>टेक्स्ट बॉक्स को एक पूर्वनिर्धारित ड्रॉपडाउन सूची से बदल दिया गया है और यह फॉर्म सबमिट करने के लिए POST का उपयोग करता है।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">?id=a UNION SELECT 1,2;-- -&Submit=Submit</span>.</pre>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>यह Low level के बहुत समान है, हालांकि इस बार हमलावर एक अलग तरीके से वैल्यू इनपुट कर रहा है।
+			इनपुट वैल्यू को सीधे GET अनुरोध के बजाय, दूसरे पेज का उपयोग करके सेशन वेरिएबल्स के माध्यम से vulnerbale query में स्थानांतरित किया जा रहा है।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">ID: a' UNION SELECT "text1","text2";-- -&Submit=Submit</span>.</pre>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>queries अब पैरामीट्रिज़्ड queries हैं (डायनेमिक होने के बजाय)। इसका मतलब है कि query को डेवलपर द्वारा परिभाषित किया गया है,
+			और यह अंतर बताती है कि कौन से हिस्से कोड हैं, और बाकी डेटा है।</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>संदर्भ (Reference): <a href="https://www.owasp.org/index.php/SQL_Injection" target="_blank">https://www.owasp.org/index.php/SQL_Injection</a></p>
+</div>

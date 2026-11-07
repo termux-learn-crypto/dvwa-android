@@ -1,0 +1,69 @@
+<div class="body_padded">
+	<h1>Help - Cross Site Request Forgery (CSRF)</h1>
+
+	<div id="code">
+	<table width='100%' bgcolor='white' style="border:2px #C0C0C0 solid">
+	<tr>
+	<td><div id="code">
+		<h3>परिचय (About)</h3>
+		<p>CSRF एक ऐसा अटैक है जो किसी एंड यूजर को किसी वेब एप्लिकेशन पर अनचाहे एक्शंस (actions) को एग्जीक्यूट करने के लिए मजबूर करता है, जिसमें वह वर्तमान में ऑथेंटिकेटेड (authenticated) होता है।
+			सोशल इंजीनियरिंग की थोड़ी सी मदद से (जैसे ईमेल/चैट के ज़रिए कोई लिंक भेजना), एक हमलावर (attacker) वेब एप्लिकेशन के यूजर्स को अपनी पसंद के एक्शंस एग्जीक्यूट करने के लिए मजबूर कर सकता है।</p>
+
+		<p>एक सफल CSRF एक्सप्लॉइट एक सामान्य यूजर के मामले में एंड यूजर के डेटा और ऑपरेशन से समझौता कर सकता है। अगर लक्षित (targeted) एंड यूजर एडमिनिस्ट्रेटर अकाउंट है, तो यह पूरे वेब एप्लिकेशन से समझौता कर सकता है।</p>
+
+		<p>इस अटैक को "XSRF" भी कहा जा सकता है, जो "Cross Site scripting (XSS)" के समान है, और अक्सर इनका उपयोग एक साथ किया जाता है।</p>
+
+		<br /><hr /><br />
+
+		<h3>उद्देश्य (Objective)</h3>
+		<p>आपका टास्क CSRF अटैक का उपयोग करके, वर्तमान यूजर को उनके एक्शंस की जानकारी दिए बिना, उनका पासवर्ड बदलवाने के लिए मजबूर करना है।</p>
+
+		<br /><hr /><br />
+
+		<h3>Low Level</h3>
+		<p>इस अटैक से सुरक्षा के लिए कोई उपाय मौजूद नहीं हैं। इसका मतलब है कि एक निश्चित एक्शन को पूरा करने के लिए एक लिंक तैयार किया जा सकता है (इस मामले में, वर्तमान यूजर का पासवर्ड बदलना)।
+			फिर कुछ बुनियादी सोशल इंजीनियरिंग के साथ, टारगेट यूजर से उस लिंक पर क्लिक करवाएं (या किसी निश्चित पेज पर विजिट करवाएं), ताकि एक्शन ट्रिगर हो जाए।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">?password_new=password&password_conf=password&Change=Change</span>.</pre>
+
+		<br />
+
+		<h3>Medium Level</h3>
+		<p>Medium लेवल चैलेंज के लिए, यह चेक करने की व्यवस्था है कि आखिरी बार अनुरोध किया गया पेज (requested page) कहां से आया था। डेवलपर का मानना है कि अगर यह मौजूदा डोमेन से मेल खाता है,
+			तो यह ज़रूर वेब एप्लिकेशन से आया होगा इसलिए इस पर भरोसा किया जा सकता है।</p>
+		<p>इस वेक्टर को एक्सप्लॉइट करने के लिए कई Vulnerabilities को आपस में लिंक करना पड़ सकता है, जैसे reflective XSS।</p>
+
+		<br />
+
+		<h3>High Level</h3>
+		<p>High लेवल में, डेवलपर ने एक "anti Cross-Site Request Forgery (CSRF) token" जोड़ा है। इस सुरक्षा तरीके को बायपास करने के लिए, एक अन्य Vulnerability की आवश्यकता होगी।</p>
+		<pre>Spoiler (जवाब): <span class="spoiler">e.g. Javascript is a executed on the client side, in the browser</span>.</pre>
+
+		<h4>Bonus Challenge</h4>
+		<p>इस लेवल पर, साइट निम्नलिखित फॉर्मेट में JSON ऑब्जेक्ट के रूप में पासवर्ड बदलने के अनुरोध को भी स्वीकार करेगी:</p>
+		<pre><code>{"password_new":"a","password_conf":"a","Change":1}</code></pre>
+		<p>जब इसे इस तरह से किया जाता है, तो CSRF token को <code>user-token</code> नामक हेडर के रूप में पास किया जाना चाहिए।</p>
+
+		<p>यहाँ एक सैंपल अनुरोध (request) दिया गया है:</p>
+		<pre><code><span class="spoiler">POST /vulnerabilities/csrf/ HTTP/1.1
+Host: dvwa.test
+Content-Length: 51
+Content-Type: application/json
+Cookie: PHPSESSID=0hr9ikmo07thlcvjv3u3pkfeni; security=high
+user-token: 026d0caed93471b507ed460ebddbd096
+
+{"password_new":"a","password_conf":"a","Change":1}</span></pre></code>
+
+		<br />
+
+		<h3>Impossible Level</h3>
+		<p>इस लेवल पर, साइट यूजर से उनके नए पासवर्ड के साथ-साथ उनका वर्तमान पासवर्ड भी देने की मांग करती है। चूंकि हमलावर यह नहीं जानता है, इसलिए साइट CSRF स्टाइल के हमलों से सुरक्षित है।</p>
+	</div></td>
+	</tr>
+	</table>
+
+	</div>
+
+	<br />
+
+	<p>संदर्भ (Reference): <a href="https://owasp.org/www-community/attacks/csrf" target="_blank">https://owasp.org/www-community/attacks/csrf</a></p>
+</div>

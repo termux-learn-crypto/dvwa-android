@@ -119,7 +119,7 @@ class Ui(val ctx: Context, val root: LinearLayout) {
     }
 
     /** Collapsible card simulating what an intercepting proxy / DevTools lets you edit. */
-    fun tamper(title: String = "🛠 Intercept & tamper (hidden fields, headers, cookies)"): Ui {
+    fun tamper(title: String = tr("🛠 Intercept & tamper (hidden fields, headers, cookies)")): Ui {
         val toggle = TextView(ctx)
         toggle.text = "▸ $title"; toggle.setTextColor(0xFFE65100.toInt()); toggle.textSize = 14f
         toggle.setPadding(dp(4), dp(8), dp(4), dp(8)); toggle.isClickable = true
@@ -170,11 +170,11 @@ class OutBox(private val u: Ui) {
     fun xss(rendered: String, blockedReason: String? = null, popup: Boolean = true): List<Xss.Hit> {
         val hits = Xss.scan(rendered)
         if (hits.isEmpty()) {
-            ok("✓ No script execution: the output contains no executable markup." + (blockedReason?.let { " ($it)" } ?: ""))
+            ok(tr("✓ No script execution: the output contains no executable markup.") + (blockedReason?.let { " ($it)" } ?: ""))
         } else if (blockedReason != null) {
-            warn("🛡 Script blocked: $blockedReason\n" + hits.joinToString("\n") { "• ${it.vector}: ${it.code.take(120)}" })
+            warn(tr("🛡 Script blocked: {0}\n", blockedReason) + hits.joinToString("\n") { "• ${it.vector}: ${it.code.take(120)}" })
         } else {
-            err("⚠ XSS fired (simulated natively — no browser involved)\n" + hits.joinToString("\n\n") { Xss.describe(it) })
+            err(tr("⚠ XSS fired (simulated natively — no browser involved)\n") + hits.joinToString("\n\n") { Xss.describe(it) })
             if (popup) Xss.firstDialog(hits)?.let { msg -> ui { alert(u.ctx, "127.0.0.1 says", msg) } }
         }
         return hits
