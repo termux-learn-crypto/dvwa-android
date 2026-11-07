@@ -406,7 +406,7 @@ dvwa:x:1000:1000:DVWA,,,:/home/dvwa:/bin/bash
         parts += cur.toString()
         return parts.joinToString("") { p0 ->
             val p = p0.trim()
-            val sv = Regex("(?i)^\\$_(GET|POST|REQUEST|COOKIE)\\s*\\[\\s*['\"]?([^'\"\\]]*)['\"]?\\s*\\]$").find(p)
+            val sv = Regex("(?i)^\\\$_(GET|POST|REQUEST|COOKIE)\\s*\\[\\s*['\"]?([^'\"\\]]*)['\"]?\\s*\\]$").find(p)
             val ex = Regex("(?is)^(shell_exec|system)\\s*\\((.*)\\)$").find(p)
             when {
                 sv != null -> {

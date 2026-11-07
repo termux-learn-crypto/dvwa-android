@@ -127,7 +127,17 @@ class DvwaServer(private val ctx: Context) : NanoHTTPD("127.0.0.1", PORT) {
         }
         resp.addHeader("Cache-Control", "no-cache, must-revalidate")
         for ((k, v) in o.headers) resp.addHeader(k, v)
-        for (c in o.cookies) resp.addCookieHeader(c)
+        // NanoHTTPD 2.3.1 keeps headers in a map, so emit each Set-Cookie under a distinct
+        // letter-case variant of the header name (HTTP header names are case-insensitive).
+        o.cookies.forEachIndexed { i, c ->
+            val base = "set-cookie"
+            val name = StringBuilder()
+            var bit = 0
+            for (ch in base) {
+                if (ch.isLetter()) { name.append(if (((i + 1) shr bit) and 1 == 1) ch.uppercaseChar() else ch); bit++ } else name.append(ch)
+            }
+            resp.addHeader(name.toString(), c)
+        }
         return resp
     }
 
