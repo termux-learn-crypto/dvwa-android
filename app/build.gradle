@@ -2,6 +2,12 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
 }
+
+// Fixed signing key (committed on purpose, see keystore.properties) so every
+// build installs as an update over the previous one.
+def keystoreProps = new Properties()
+def keystorePropsFile = rootProject.file('keystore.properties')
+if (keystorePropsFile.exists()) { keystorePropsFile.withInputStream { keystoreProps.load(it) } }
 android {
     namespace 'org.dvwa.android'
     compileSdk 34
@@ -9,11 +15,25 @@ android {
         applicationId "org.dvwa.android"
         minSdk 24
         targetSdk 34
-        versionCode 3
-        versionName "2.1.0"
+        versionCode 4
+        versionName "2.1.1"
+    }
+    signingConfigs {
+        dvwa {
+            storeFile file(keystoreProps.getProperty('storeFile', 'dvwa-release.keystore'))
+            storePassword keystoreProps.getProperty('storePassword', 'dvwa-android')
+            keyAlias keystoreProps.getProperty('keyAlias', 'dvwa')
+            keyPassword keystoreProps.getProperty('keyPassword', 'dvwa-android')
+            enableV1Signing true
+            enableV2Signing true
+        }
     }
     buildTypes {
-        release { minifyEnabled false }
+        debug { signingConfig signingConfigs.dvwa }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.dvwa
+        }
     }
     buildFeatures { viewBinding true }
     compileOptions {

@@ -20,31 +20,36 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon --stacktrace assembleDebug
-          cp app/build/outputs/apk/debug/app-debug.apk dvwa-native-v2.1.0-debug.apk
+          cp app/build/outputs/apk/debug/app-debug.apk dvwa-native-v2.1.1-debug.apk
       - name: Verify no INTERNET permission / no WebView
         run: |
           AAPT=$(ls $ANDROID_HOME/build-tools/*/aapt | tail -1)
-          $AAPT dump permissions dvwa-native-v2.1.0-debug.apk | tee perms.txt
+          $AAPT dump permissions dvwa-native-v2.1.1-debug.apk | tee perms.txt
           if grep -q "android.permission.INTERNET" perms.txt; then echo "INTERNET permission found"; exit 1; fi
           if grep -rq "android.webkit" app/src/main/java; then echo "WebView usage found"; exit 1; fi
+      - name: Verify signing certificate (fixed key)
+        run: |
+          APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | tail -1)
+          $APKSIGNER verify --print-certs dvwa-native-v2.1.1-debug.apk | tee certs.txt
+          grep -qi "a924f92a3d7fbc15a18230d336297e259cd944db746688429865a3597eff5d5d" certs.txt || { echo "Unexpected signing cert"; exit 1; }
       - uses: actions/upload-artifact@v4
         with:
           name: dvwa-native-debug-apk
-          path: dvwa-native-v2.1.0-debug.apk
-      - name: Publish release v2.1.0
+          path: dvwa-native-v2.1.1-debug.apk
+      - name: Publish release v2.1.1
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.1.0
-          name: DVWA Offline v2.1.0 (Hindi + Hinglish + User Guide)
+          tag_name: v2.1.1
+          name: DVWA Offline v2.1.1 (fixed signing key - seamless updates)
           body: |
             Fully native Android DVWA (Kotlin, no WebView, no INTERNET permission) - debug build.
-            New in v2.1.0:
-            - Language switcher: English, हिन्दी (Hindi), Hinglish. Login screen 🌐 button, drawer > Settings > Language, or the ⋮ menu. Choice is saved and applied app-wide (per-app locale; Android 13+ system "App language" also works). Default on first launch: Hinglish, with a first-run language picker.
-            - All UI text, messages, errors, dialogs, security level names and every module's Help translated to Hindi and Hinglish (technical terms like SQL Injection, XSS, CSRF, payload, cookie stay in English). PHP source in View Source is unchanged; its headings are translated.
-            - New in-app User Guide / Kaise Use Karein / उपयोग गाइड (drawer + Home button + login screen) with per-module walkthroughs, example payloads and troubleshooting.
-            - 4-slide first-run tutorial in the chosen language.
-            - docs/USER_GUIDE.md (Hinglish) and docs/USER_GUIDE_HI.md (Hindi).
+            v2.1.1 se aage updates seedha install honge; v2.1.1 install karne se pehle purana app ek baar uninstall karein.
+            What changed in v2.1.1:
+            - Every build is now signed with one fixed key (app/dvwa-release.keystore), so future versions install over the old one ("App not installed" / signature mismatch fixed).
+            - Older builds (v1.0.0 - v2.1.0) were signed with random CI debug keys, so uninstall them once before installing v2.1.1.
+            - Same features as v2.1.0: English / हिन्दी / Hinglish, in-app User Guide, first-run tutorial.
+            Signing cert SHA-256: A9:24:F9:2A:3D:7F:BC:15:A1:82:30:D3:36:29:7E:25:9C:D9:44:DB:74:66:88:42:98:65:A3:59:7E:FF:5D:5D
             Login: admin / password. Built from commit ${{ github.sha }}.
-          files: dvwa-native-v2.1.0-debug.apk
+          files: dvwa-native-v2.1.1-debug.apk
           make_latest: true
