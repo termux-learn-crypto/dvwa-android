@@ -227,7 +227,7 @@ object CspPage : Page() {
     override fun build(ui: Ui, f: PageFragment) {
         val lv = level
         val c = ui.card()
-        c.info("Content-Security-Policy: ${policy(lv)}")
+        c.code("Content-Security-Policy: ${policy(lv)}")
         val res = c.result()
         when (lv) {
             "low" -> {
