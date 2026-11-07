@@ -1,6 +1,7 @@
 package org.dvwa.android
 
 import java.net.URLDecoder
+import java.net.URLEncoder
 import java.security.MessageDigest
 import java.security.SecureRandom
 
@@ -85,37 +86,13 @@ object U {
         return m
     }
     fun jsonStr(s: String?): String = org.json.JSONObject.quote(s ?: "")
-}
-
-class Upload(val field: String, val filename: String, val type: String, val data: ByteArray)
-
-class Req(
-    val method: String, val path: String, val query: String, val get: Map<String, String>, val post: Map<String, String>,
-    val cookies: Map<String, String>, val headers: Map<String, String>, val body: ByteArray, val upload: Upload?
-) {
-    val contentType: String get() = headers["content-type"] ?: ""
-    fun req(k: String): String? = post[k] ?: get[k]
-    fun has(k: String) = post.containsKey(k) || get.containsKey(k)
-    val bodyText: String get() = String(body, Charsets.UTF_8)
-}
-
-class Out(var body: Any = "", var status: Int = 200, var mime: String = "text/html; charset=utf-8") {
-    val headers = LinkedHashMap<String, String>()
-    val cookies = ArrayList<String>()
-    companion object {
-        fun redirect(loc: String, code: Int = 302) = Out("", code).also { it.headers["Location"] = loc }
-        fun text(s: String, code: Int = 200) = Out(s, code, "text/plain; charset=utf-8")
-        fun json(s: String, code: Int = 200) = Out(s, code, "application/json; charset=UTF-8")
+    fun urlencode(s: String): String = URLEncoder.encode(s, "UTF-8")
+    /** decode a few HTML entities like a browser would inside attributes */
+    fun unentity(s: String): String {
+        var r = Regex("&#[xX]([0-9a-fA-F]+);?").replace(s) { m -> m.groupValues[1].toIntOrNull(16)?.takeIf { it < 0xFFFF }?.toChar()?.toString() ?: m.value }
+        r = Regex("&#(\\d+);?").replace(r) { m -> m.groupValues[1].toIntOrNull()?.takeIf { it < 0xFFFF }?.toChar()?.toString() ?: m.value }
+        return r.replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&#039;", "'").replace("&apos;", "'").replace("&amp;", "&")
     }
+    fun phpUniqid(): String = java.lang.Long.toHexString(System.currentTimeMillis() / 1000) + String.format("%05x", (System.nanoTime() / 1000) % 0x100000)
 }
 
-class Sess(val id: String) {
-    var user: String? = null
-    var token: String = U.md5(U.randHex(16))
-    val vars = HashMap<String, Any>()
-    val messages = ArrayList<String>()
-    fun newToken() { token = U.md5(U.randHex(16)) }
-}
-
-class TokenFail(val back: String) : Exception()
-class Die(val out: Out) : Exception()

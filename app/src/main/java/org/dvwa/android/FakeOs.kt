@@ -8,7 +8,7 @@ import java.io.File
  * the "shell" is an interpreter over canned output and a virtual filesystem.
  * Real files are only read from the app's own private sandbox (uploads etc).
  */
-class FakeOs(private val ctx: Context, private val server: DvwaServer) {
+class FakeOs(private val ctx: Context) {
     val webroot = "/var/www/html"
     val uploadsDir: File get() = File(ctx.filesDir, "hackable/uploads").also { it.mkdirs() }
 
@@ -348,7 +348,7 @@ dvwa:x:1000:1000:DVWA,,,:/home/dvwa:/bin/bash
      * few classic webshell idioms are simulated (system/shell_exec/passthru/exec with a request
      * parameter or literal, echo/print of literals, phpinfo()). Commands go to the fake shell.
      */
-    fun runPhp(src: String, r: Req?): String {
+    fun runPhp(src: String, r: Map<String, String>?): String {
         val sb = StringBuilder()
         var i = 0
         while (i < src.length) {
@@ -368,14 +368,14 @@ dvwa:x:1000:1000:DVWA,,,:/home/dvwa:/bin/bash
         return sb.toString()
     }
 
-    private fun evalStatements(code: String, r: Req?): String {
+    private fun evalStatements(code: String, r: Map<String, String>?): String {
         val sb = StringBuilder()
         for (stRaw in code.split(';')) {
             val st = stRaw.trim()
             if (st.isEmpty() || st.startsWith("//") || st.startsWith("#")) continue
             val m = Regex("(?is)^(echo|print)\\s*(.*)$").find(st)
             if (m != null) { sb.append(evalExpr(m.groupValues[2], r)); continue }
-            if (st.matches(Regex("(?i)^phpinfo\\s*\\(\\s*\\)$"))) { sb.append(server.phpInfoHtml()); continue }
+            if (st.matches(Regex("(?i)^phpinfo\\s*\\(\\s*\\)$"))) { sb.append(PhpInfo.text()); continue }
             val e = Regex("(?is)^@?(system|passthru|shell_exec|exec)\\s*\\((.*)\\)$").find(st)
             if (e != null) {
                 val out = shellExec(evalExpr(e.groupValues[2], r))
@@ -386,7 +386,7 @@ dvwa:x:1000:1000:DVWA,,,:/home/dvwa:/bin/bash
         return sb.toString()
     }
 
-    private fun evalExpr(expr0: String, r: Req?): String {
+    private fun evalExpr(expr0: String, r: Map<String, String>?): String {
         var expr = expr0.trim()
         if (expr.startsWith("(") && expr.endsWith(")")) expr = expr.substring(1, expr.length - 1).trim()
         val parts = ArrayList<String>()
@@ -411,12 +411,7 @@ dvwa:x:1000:1000:DVWA,,,:/home/dvwa:/bin/bash
             when {
                 sv != null -> {
                     val k = sv.groupValues[2]
-                    when (sv.groupValues[1].uppercase()) {
-                        "GET" -> r?.get?.get(k)
-                        "POST" -> r?.post?.get(k)
-                        "COOKIE" -> r?.cookies?.get(k)
-                        else -> r?.req(k)
-                    } ?: ""
+                    r?.get(k) ?: ""
                 }
                 ex != null -> shellExec(evalExpr(ex.groupValues[2], r))
                 p.length >= 2 && p.startsWith("'") && p.endsWith("'") -> p.substring(1, p.length - 1)

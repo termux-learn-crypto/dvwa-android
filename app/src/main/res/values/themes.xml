@@ -1,0 +1,19 @@
+<resources>
+    <style name="Theme.DVWA" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/dvwa_green</item>
+        <item name="colorPrimaryVariant">@color/dvwa_green_dark</item>
+        <item name="colorSecondary">@color/dvwa_red</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="android:windowBackground">@color/dvwa_bg</item>
+        <item name="android:statusBarColor">@color/dvwa_green_dark</item>
+    </style>
+
+    <style name="Widget.DVWA.Code" parent="">
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/dvwa_code_fg</item>
+        <item name="android:background">@color/dvwa_code_bg</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:textIsSelectable">true</item>
+    </style>
+</resources>

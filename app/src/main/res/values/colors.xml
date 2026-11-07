@@ -1,0 +1,14 @@
+<resources>
+    <color name="dvwa_green">#2E7D32</color>
+    <color name="dvwa_green_dark">#1B5E20</color>
+    <color name="dvwa_red">#C62828</color>
+    <color name="dvwa_amber">#FF8F00</color>
+    <color name="dvwa_bg">#F4F4F4</color>
+    <color name="dvwa_code_bg">#1E1E1E</color>
+    <color name="dvwa_code_fg">#E0E0E0</color>
+    <color name="dvwa_menu_bg">#2B2B2B</color>
+    <color name="dvwa_menu_fg">#EEEEEE</color>
+    <color name="dvwa_menu_header">#9E9E9E</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+</resources>
