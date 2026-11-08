@@ -302,34 +302,54 @@ object JsPage : Page() {
         return if (token == expected) true to tr("Well done!") else false to tr("Invalid token.")
     }
 
+    /** The level's real client-side JavaScript, exactly as DVWA serves it. */
+    private fun script(ctx: android.content.Context, lv: String): String? =
+        if (lv == "impossible") null else try { ctx.assets.open("js/$lv.js").bufferedReader().use { it.readText() } } catch (e: Exception) { null }
+
     override fun build(ui: Ui, f: PageFragment) {
         val lv = level
         val c = ui.card()
         c.p(tr("Submit the word \"success\" to win."))
         if (lv == "impossible") c.warn(tr("You can never trust anything that comes from the user or prevent them from messing with it and so there is no impossible level."))
-        val phrase = c.field(tr("Phrase"), if (lv == "high") "" else "ChangeMe")
-        val t = c.tamper(tr("🛠 Hidden token field & browser console (simulated JS)"))
-        // page-load JavaScript, ported
-        val initial = when (lv) {
-            "low" -> U.md5(U.rot13("ChangeMe"))
-            "medium" -> ("XX" + "ChangeMe" + "XX").reversed()
-            "high" -> U.sha256("XX" + "")      // token_part_1("") then token_part_2("XX") after 300 ms
-            else -> ""
-        }
-        val token: EditText = t.field(tr("token (hidden input)"), initial)
-        when (lv) {
-            "low" -> t.button("console> generate_token()", outlined = true) { token.setText(U.md5(U.rot13(phrase.str()))) }
-            "medium" -> t.button("console> do_elsesomething(\"XX\")", outlined = true) { token.setText(("XX" + phrase.str() + "XX").reversed()) }
-            "high" -> {
-                t.button("console> token_part_1(\"ABCD\", 44)", outlined = true) { token.setText(phrase.str().reversed()) }
-                t.button("console> token_part_2(\"XX\")", outlined = true) { token.setText(U.sha256("XX" + token.str())) }
-                t.button("console> token_part_3(t, \"ZZ\")", outlined = true) { token.setText(U.sha256(token.str() + "ZZ")) }
-                t.p(tr("Note: the Submit button's click handler runs token_part_3() before the form is sent."))
+        val phrase = c.field(tr("Phrase"), "ChangeMe")
+        val t = c.tamper(tr("🛠 Hidden token field & browser console (real JavaScript engine)"))
+        val token: EditText = t.field(tr("token (hidden input)"), "")
+        val out = t.result()
+        // Page load: <input id="phrase" value="ChangeMe">, <input id="token">, <input id="send">, then the level's <script>
+        var js = JsEngine(Session.cookieHeader(), "http://127.0.0.1/vulnerabilities/javascript/")
+        fun pageLoad() {
+            js = JsEngine(Session.cookieHeader(), "http://127.0.0.1/vulnerabilities/javascript/")
+            js.setValue("phrase", "ChangeMe"); js.setValue("token", ""); js.document("send")
+            val src = script(ui.ctx, lv)
+            out.clear()
+            if (src != null) {
+                val err = js.run(src, "$lv.js")
+                out.info(tr("Page JavaScript ran: {0}", if (lv == "low") "inline <script>" else "source/$lv.js") + (err?.let { "\n$it" } ?: ""))
             }
+            phrase.setText(js.value("phrase")); token.setText(js.value("token"))
         }
+        pageLoad()
+        val cmd = t.field(tr("console>"), when (lv) { "low" -> "generate_token()"; "medium" -> "do_elsesomething(\"XX\")"; "high" -> "token_part_1(\"ABCD\", 44)"; else -> "document.cookie" })
+        fun sync() { js.setValue("phrase", phrase.str()); js.setValue("token", token.str()) }
+        t.button(tr("Run in console"), outlined = true) {
+            sync()
+            val n0 = js.effects.size
+            val r = js.eval(cmd.str())
+            val extra = js.effects.drop(n0).joinToString("") { "\n${it.kind}: ${it.text}" }
+            out.pre("> ${cmd.str()}\n< $r$extra")
+            phrase.setText(js.value("phrase")); token.setText(js.value("token"))
+        }
+        when (lv) {
+            "low" -> t.p(tr("Hint: change the phrase, then run generate_token() (md5(rot13(phrase)))."))
+            "medium" -> t.p(tr("Hint: change the phrase, then run do_elsesomething(\"XX\")."))
+            "high" -> t.p(tr("Hint: the script is obfuscated (see View Source). Try token_part_1(\"ABCD\", 44), then token_part_2(\"XX\"). The Submit button's click handler runs token_part_3() before the form is sent."))
+        }
+        t.button(tr("Reload page (re-run the script)"), outlined = true) { pageLoad() }
         val res = c.result()
         c.button(tr("Submit")) {
-            if (lv == "high") token.setText(U.sha256(token.str() + "ZZ"))  // addEventListener("click", token_part_3)
+            sync()
+            js.fire("send", "click")   // e.g. high: addEventListener("click", token_part_3)
+            token.setText(js.value("token"))
             val (ok, msg) = check(lv, phrase.str(), token.str())
             res.clear(); res.info("POST phrase=${U.urlencode(phrase.str())}&token=${token.str()}&send=Submit")
             if (ok) res.err("🎯 $msg") else res.warn(msg)

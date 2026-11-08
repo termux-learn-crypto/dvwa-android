@@ -3,10 +3,11 @@ package org.dvwa.android
 import android.util.Base64
 
 /**
- * There is no browser and no JavaScript engine in this app. Instead, the HTML a vulnerable
- * DVWA page WOULD have sent to the browser is analysed here: if it contains markup that a
- * browser would turn into script execution, we report what would have run and simulate the
- * visible effect (alert/prompt/confirm text, cookie theft, redirects) natively.
+ * There is no WebView in this app. The HTML a vulnerable DVWA page WOULD have sent to the
+ * browser is analysed here: if it contains markup that a browser would turn into script
+ * execution, that script is run in the built-in JavaScript engine ([JsEngine], Mozilla Rhino)
+ * against a fake DOM, and its visible effects (alert/prompt/confirm, cookie theft, redirects,
+ * beacons) are shown natively. Nothing leaves the device.
  */
 object Xss {
     data class Hit(
@@ -57,15 +58,41 @@ object Xss {
         return hits
     }
 
-    /** Simulate what the injected JavaScript would visibly do. Returns human-readable effects. */
-    fun simulate(code: String, depth: Int = 0): List<String> {
+    /**
+     * Run the injected JavaScript in the real engine ([JsEngine], Rhino) against a fake DOM and
+     * report what it visibly did. Falls back to the pattern-based [simulateRegex] if the engine
+     * is unavailable.
+     */
+    fun simulate(code: String): List<String> {
+        if (code.isBlank()) return listOf()
+        val page = try { JsEngine(Session.cookieHeader()) } catch (e: Throwable) { return simulateRegex(code) }
+        page.run(code, "injected")
+        val out = ArrayList<String>()
+        for (e in page.effects) out += when (e.kind) {
+            "alert", "prompt", "confirm" -> "${e.kind} dialog → \"${e.text}\""
+            "print" -> "print dialog → \"\""
+            "navigate" -> tr("Victim browser navigated to: {0} (simulated, nothing leaves the device)", e.text)
+            "request" -> tr("HTTP request to {0} (simulated exfiltration, no network)", e.text)
+            "write" -> "document.write → ${e.text}"
+            "html" -> "innerHTML → ${e.text}"
+            "console" -> "console.log → ${e.text}"
+            "cookieset" -> "document.cookie = ${e.text}"
+            "error" -> "JS error: ${e.text}"
+            else -> "${e.kind}: ${e.text}"
+        }
+        if (out.isEmpty()) out += tr("Script executed: {0}", code.take(200))
+        return out
+    }
+
+    /** Pattern-based fallback used when the JS engine cannot start. */
+    fun simulateRegex(code: String, depth: Int = 0): List<String> {
         val out = ArrayList<String>()
         if (depth > 3) return out
         // eval(atob('...')) / eval(String.fromCharCode(...))
         Regex("(?is)eval\\s*\\(\\s*atob\\s*\\(\\s*['\"`]([A-Za-z0-9+/=]+)['\"`]\\s*\\)\\s*\\)").findAll(code).forEach {
             val dec = try { String(Base64.decode(it.groupValues[1], Base64.DEFAULT)) } catch (e: Exception) { "" }
             out += "eval(atob(…)) decoded to: $dec"
-            out += simulate(dec, depth + 1)
+            out += simulateRegex(dec, depth + 1)
         }
         Regex("(?is)\\b(alert|prompt|confirm|print)\\s*(?:\\(([^)]*)\\)|`([^`]*)`)").findAll(code).forEach {
             val fn = it.groupValues[1]
