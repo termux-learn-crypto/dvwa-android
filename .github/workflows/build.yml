@@ -20,36 +20,27 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon --stacktrace assembleDebug
-          cp app/build/outputs/apk/debug/app-debug.apk dvwa-native-v2.1.1-debug.apk
-      - name: Verify no INTERNET permission / no WebView
+          cp app/build/outputs/apk/debug/app-debug.apk dvwa-native-${{ github.ref_name }}-debug.apk
+      - name: Verify no WebView
         run: |
           AAPT=$(ls $ANDROID_HOME/build-tools/*/aapt | tail -1)
-          $AAPT dump permissions dvwa-native-v2.1.1-debug.apk | tee perms.txt
-          if grep -q "android.permission.INTERNET" perms.txt; then echo "INTERNET permission found"; exit 1; fi
+          $AAPT dump permissions dvwa-native-${{ github.ref_name }}-debug.apk | tee perms.txt
           if grep -rq "android.webkit" app/src/main/java; then echo "WebView usage found"; exit 1; fi
       - name: Verify signing certificate (fixed key)
         run: |
           APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | tail -1)
-          $APKSIGNER verify --print-certs dvwa-native-v2.1.1-debug.apk | tee certs.txt
+          $APKSIGNER verify --print-certs dvwa-native-${{ github.ref_name }}-debug.apk | tee certs.txt
           grep -qi "a924f92a3d7fbc15a18230d336297e259cd944db746688429865a3597eff5d5d" certs.txt || { echo "Unexpected signing cert"; exit 1; }
       - uses: actions/upload-artifact@v4
         with:
           name: dvwa-native-debug-apk
-          path: dvwa-native-v2.1.1-debug.apk
-      - name: Publish release v2.1.1
-        if: github.ref == 'refs/heads/main'
+          path: dvwa-native-${{ github.ref_name }}-debug.apk
+      - name: Publish release (only for v* tags)
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.1.1
-          name: DVWA Offline v2.1.1 (fixed signing key - seamless updates)
-          body: |
-            Fully native Android DVWA (Kotlin, no WebView, no INTERNET permission) - debug build.
-            v2.1.1 se aage updates seedha install honge; v2.1.1 install karne se pehle purana app ek baar uninstall karein.
-            What changed in v2.1.1:
-            - Every build is now signed with one fixed key (app/dvwa-release.keystore), so future versions install over the old one ("App not installed" / signature mismatch fixed).
-            - Older builds (v1.0.0 - v2.1.0) were signed with random CI debug keys, so uninstall them once before installing v2.1.1.
-            - Same features as v2.1.0: English / हिन्दी / Hinglish, in-app User Guide, first-run tutorial.
-            Signing cert SHA-256: A9:24:F9:2A:3D:7F:BC:15:A1:82:30:D3:36:29:7E:25:9C:D9:44:DB:74:66:88:42:98:65:A3:59:7E:FF:5D:5D
-            Login: admin / password. Built from commit ${{ github.sha }}.
-          files: dvwa-native-v2.1.1-debug.apk
+          tag_name: ${{ github.ref_name }}
+          name: DVWA Native ${{ github.ref_name }}
+          body_path: docs/RELEASE_NOTES.md
+          files: dvwa-native-${{ github.ref_name }}-debug.apk
           make_latest: true

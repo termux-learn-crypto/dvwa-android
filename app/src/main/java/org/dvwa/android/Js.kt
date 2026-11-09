@@ -18,6 +18,11 @@ class JsEngine(cookie: String = "", href: String = "http://127.0.0.1/") {
     data class Effect(val kind: String, val text: String)
 
     val effects = ArrayList<Effect>()
+    /**
+     * Called when the page adds `<script src=…>` to the DOM. Return the script body to run it,
+     * or null when it cannot load (blocked by CSP, 404, offline). Null loader = record only.
+     */
+    var loader: ((String) -> String?)? = null
     var cookie: String = cookie
     private val scope: ScriptableObject
 
@@ -38,6 +43,12 @@ class JsEngine(cookie: String = "", href: String = "http://127.0.0.1/") {
             }
             hook("__b64e") { a -> java.util.Base64.getEncoder().encodeToString(s(a, 0).toByteArray(Charsets.ISO_8859_1)) }
             hook("__b64d") { a -> try { String(java.util.Base64.getDecoder().decode(s(a, 0).trim()), Charsets.ISO_8859_1) } catch (e: Exception) { throw RuntimeException("InvalidCharacterError: atob()") } }
+            hook("__load") { a -> loader?.invoke(s(a, 0)) }
+            hook("__exec") { a ->
+                try { Context.getCurrentContext().evaluateString(scope, s(a, 0), s(a, 1), 1, null) }
+                catch (e: RhinoException) { effects += Effect("error", (if (e is org.mozilla.javascript.EvaluatorException) "SyntaxError: " else "") + e.details() + " (" + s(a, 1) + ")") }
+                null
+            }
             ScriptableObject.putProperty(scope, "__href0", href)
             cx.evaluateString(scope, PRELUDE, "dom.js", 1, null)
         } finally { Context.exit() }
@@ -131,7 +142,7 @@ __El.prototype.addEventListener = function(ev, f){ (this.__l[ev] = this.__l[ev] 
 __El.prototype.removeEventListener = function(){};
 __El.prototype.setAttribute = function(k, v){ v = __str(v); this.attributes[k] = v; if (k === 'id') { this.id = v; __els[v] = this; } else if (k === 'src' || k === 'href' || k === 'value') { this[k] = v; } else if (k.substr(0, 2) === 'on') { var c = v; this[k] = function(){ eval(c); }; } };
 __El.prototype.getAttribute = function(k){ return this.attributes[k] === undefined ? null : this.attributes[k]; };
-__El.prototype.appendChild = function(c){ this.children.push(c); if (c && c.tagName === 'SCRIPT') { if (c.__src) __req('script', c.__src); else if (c.text) eval(c.text); } return c; };
+__El.prototype.appendChild = function(c){ this.children.push(c); if (c && c.tagName === 'SCRIPT') { if (c.__src) { __req('script', c.__src); var code = __load(c.__src); if (typeof code === 'string') __exec(code, c.__src); } else if (c.text) __exec(c.text, 'inline'); } return c; };
 __El.prototype.insertBefore = __El.prototype.appendChild; __El.prototype.append = __El.prototype.appendChild; __El.prototype.prepend = __El.prototype.appendChild;
 __El.prototype.removeChild = function(c){ return c; }; __El.prototype.remove = function(){};
 __El.prototype.insertAdjacentHTML = function(p, h){ __emit('html', __str(h)); };

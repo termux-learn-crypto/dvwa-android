@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Fully native and offline: no INTERNET permission, no WebView. -->
+    <!-- Fully native, no WebView. INTERNET (v2.2.0+) is used only when a lab really fetches
+         something (e.g. the CSP low level downloading an allowed external script). -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:name=".DvwaApp"
         android:allowBackup="false"

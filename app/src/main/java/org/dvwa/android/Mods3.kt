@@ -192,8 +192,6 @@ object CspPage : Page() {
     override val links = listOf("https://content-security-policy.com/", "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
         "https://blog.mozilla.org/security/2014/10/04/csp-for-the-web-we-have/", "https://portswigger.net/research/using-form-hijacking-to-bypass-csp")
     private const val NONCE = "TmV2ZXIgZ29pbmcgdG8gZ2l2ZSB5b3UgdXA="
-    private val lowHosts = listOf("pastebin.com" to "https", "hastebin.com" to "", "www.toptal.com" to "", "example.com" to "", "code.jquery.com" to "",
-        "ssl.google-analytics.com" to "https", "unpkg.com" to "", "cdn.jsdelivr.net" to "", "digi.ninja" to "")
 
     fun policy(lv: String) = when (lv) {
         "low" -> "script-src 'self' https://pastebin.com hastebin.com www.toptal.com example.com code.jquery.com https://ssl.google-analytics.com unpkg.com cdn.jsdelivr.net digi.ninja ;"
@@ -204,45 +202,71 @@ object CspPage : Page() {
     private fun isSelf(src: String) = !Regex("^[a-z][a-z0-9+.-]*:|^//", RegexOption.IGNORE_CASE).containsMatchIn(src) ||
         Regex("^(https?:)?//(127\\.0\\.0\\.1|localhost)(:80)?(/|$)", RegexOption.IGNORE_CASE).containsMatchIn(src)
 
-    private fun allowedLow(src: String): Boolean {
-        if (isSelf(src)) return true
-        val m = Regex("^(https?)://([^/:?#]+)", RegexOption.IGNORE_CASE).find(src) ?: return false
-        val scheme = m.groupValues[1].lowercase(); val host = m.groupValues[2].lowercase()
-        return lowHosts.any { (h, s) -> h == host && (s.isEmpty() || s == scheme) }
-    }
-
-    /** Content of a same-origin script: JSONP endpoint or an uploaded file. */
-    private fun selfContent(lv: String, src: String): String? {
+    /** Content of a same-origin script: JSONP endpoint, the level's own JS, or an uploaded file. */
+    private fun selfContent(ctx: android.content.Context, lv: String, src: String): String? {
         val path = src.replace(Regex("^(https?:)?//[^/]+"), "")
         if (path.contains("jsonp_impossible.php")) return "solveSum({\"answer\":\"15\"})"
         if (path.contains("jsonp.php")) {
             val cb = U.parseQuery(path.substringAfter('?', ""))["callback"] ?: return ""
-            return if (lv == "impossible") "solveSum({\"answer\":\"15\"})" else cb + "({\"answer\":\"15\"})"
+            return cb + "({\"answer\":\"15\"})"
+        }
+        Regex("source/(high|impossible)\\.js").find(path)?.let { m ->
+            return try { ctx.assets.open("js/csp_${m.groupValues[1]}.js").bufferedReader().use { it.readText() } } catch (e: Exception) { null }
         }
         val up = path.substringAfter("/hackable/uploads/", "").substringBefore('?')
         if (up.isNotEmpty() && !up.contains("..")) { val fl = java.io.File(UploadPage.dir(), up); if (fl.isFile) return fl.readText() }
         return null
     }
 
+    /** Download an external script the way the victim's browser would (needs internet). */
+    private fun download(url: String): String? = try {
+        val u = java.net.URL(if (url.startsWith("//")) "https:$url" else url)
+        val cn = (u.openConnection() as java.net.HttpURLConnection).apply {
+            connectTimeout = 8000; readTimeout = 8000; instanceFollowRedirects = true
+            setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android) DVWA-Native/2.2")
+        }
+        if (cn.responseCode in 200..299) cn.inputStream.use { ins -> String(ins.readBytes().let { if (it.size > 262144) it.copyOf(262144) else it }, Charsets.UTF_8) } else null
+    } catch (e: Exception) { null }
+
+    /** Effects of one script run, newest first appended to [res]. */
+    private fun report(res: OutBox, js: JsEngine, from: Int, title: String): String? {
+        val eff = js.effects.drop(from).filter { it.kind != "request" || !it.text.startsWith("script ") }
+        res.err(title + eff.joinToString("") { "\n  • ${it.kind}: ${it.text}" }.ifEmpty { "\n  • " + tr("(no visible effect)") })
+        return eff.firstOrNull { it.kind == "alert" || it.kind == "prompt" || it.kind == "confirm" }?.text
+    }
+
     override fun build(ui: Ui, f: PageFragment) {
         val lv = level
+        val csp = Csp(policy(lv))
         val c = ui.card()
         c.code("Content-Security-Policy: ${policy(lv)}")
         val res = c.result()
+        fun newPage(): JsEngine = JsEngine(Session.cookieHeader(), "http://127.0.0.1/vulnerabilities/csp/")
         when (lv) {
             "low" -> {
                 c.p(tr("You can include scripts from external sources, examine the Content Security Policy and enter a URL to include here:"))
                 val inc = c.field(tr("include (script URL)"), "https://cdn.jsdelivr.net/gh/digininja/csp_bypass/alert.js")
-                val body = c.field(tr("Simulated content served by that URL (nothing is downloaded)"), "alert(document.cookie)", multiline = true)
-                c.button(tr("Include")) {
-                    val src = inc.str()
+                val t = c.tamper(tr("🛠 Offline fallback"))
+                val offline = t.check(tr("Don't download — use the content below instead"))
+                val body = t.field(tr("Content served by that URL when offline"), "alert(document.cookie)", multiline = true)
+                c.button(tr("Include")) { b ->
+                    val src = inc.str(); val useBody = offline.isChecked; val fallback = body.str()
                     res.clear()
-                    val html = "<script src='$src'></script>"
-                    res.text(tr("Page body now contains:")); res.pre(html)
-                    if (!allowedLow(src)) { res.warn(tr("🛡 Refused to load the script '{0}' because it violates the following Content Security Policy directive: \"{1}\"", src, policy(lv))); return@button }
-                    val code = if (isSelf(src)) selfContent(lv, src) ?: body.str() else body.str()
-                    res.err(tr("⚠ CSP allowed the script — it executes (simulated)\n") + Xss.simulate(code).joinToString("\n") { "  • $it" })
-                    Xss.firstDialog(listOf(Xss.Hit("<script src>", code, true)))?.let { OutBox.alert(f.requireContext(), "127.0.0.1 says", it) }
+                    res.text(tr("Page body now contains:")); res.pre("<script src='$src'></script>")
+                    val v = csp.allowsSource(src)
+                    if (!v.allowed) { res.warn(tr("🛡 Refused to load the script '{0}' because it violates the following Content Security Policy directive: \"{1}\"", src, policy(lv))); return@button }
+                    res.info(tr("CSP allows it ({0}).", v.reason))
+                    Bg.run(b) {
+                        val code = when {
+                            isSelf(src) -> selfContent(f.requireContext(), lv, src) ?: fallback
+                            useBody -> fallback
+                            else -> download(src) ?: run { res.warn(tr("Could not download {0} (offline?) — using the fallback content.", src)); fallback }
+                        }
+                        res.text(tr("Script body:")); res.pre(code.take(4000))
+                        val js = newPage(); js.run(code, src)
+                        val d = report(res, js, 0, tr("⚠ CSP allowed the script — it executes (real JS engine)"))
+                        if (d != null) res.custom { OutBox.alert(it.ctx, "127.0.0.1 says", d) }
+                    }
                 }
             }
             else -> {
@@ -252,34 +276,53 @@ object CspPage : Page() {
                     else -> tr("Unlike the high level, this does a JSONP call but does not use a callback, instead it hardcodes the function to call. The CSP settings only allow external JavaScript on the local server and no inline code.")
                 })
                 val inc = c.field(tr("include (raw HTML dropped into the page)"), if (lv == "medium") "<script nonce=\"$NONCE\">alert(1)</script>" else "<script src=\"source/jsonp.php?callback=alert(document.cookie)//\"></script>", multiline = true)
+                var js = newPage()
+                val answer = if (lv != "medium") c.result() else null
+                fun loadPage(ctx: android.content.Context, html: String?) {
+                    js = newPage()
+                    js.loader = { src ->
+                        val v = csp.allowsSource(src)
+                        if (!v.allowed) { res.warn(tr("🛡 Blocked by CSP: <script src> {0} — {1}", src, v.reason)); null }
+                        else selfContent(ctx, lv, src) ?: run { res.warn(tr("{0}: 404 Not Found (same-origin file does not exist)", src)); null }
+                    }
+                    js.document("answer"); js.document("solve")
+                    if (html != null) {
+                        val hits = Xss.scan(html)
+                        if (hits.isEmpty()) res.ok(tr("No executable markup."))
+                        var dialog: String? = null
+                        for (h in hits) {
+                            val v = when {
+                                h.src != null -> csp.allowsSource(h.src)
+                                h.vector == "<script>" -> csp.allowsInline(Regex("(?i)nonce\\s*=\\s*[\"']?([^\"'\\s>]+)").find(h.attrs)?.groupValues?.get(1))
+                                else -> csp.allowsInline(null).let { if (it.allowed) it else Csp.Verdict(false, tr("inline event handler blocked (no 'unsafe-inline')")) }
+                            }
+                            if (!v.allowed) { res.warn(tr("🛡 Blocked by CSP: {0} — {1}", h.vector, v.reason)); continue }
+                            val code = if (h.src != null) (selfContent(ctx, lv, h.src) ?: run { res.warn(tr("{0}: 404 Not Found (same-origin file does not exist)", h.src)); null }) else h.code
+                            if (code == null) continue
+                            if (h.src != null) res.info(tr("Loaded {0} → {1}", h.src, code.take(300)))
+                            val n0 = js.effects.size
+                            js.run(code, h.src ?: "inline")
+                            if (lv == "impossible" && code.startsWith("solveSum(")) { res.ok(tr("Script ran solveSum() only — callback is hard-coded, nothing injected.")); continue }
+                            dialog = report(res, js, n0, tr("⚠ Script executed despite CSP (real JS engine) — {0}", v.reason)) ?: dialog
+                        }
+                        dialog?.let { d -> OutBox.alert(ctx, "127.0.0.1 says", d) }
+                    }
+                    // the page's own trailing <script src="source/high.js"> / impossible.js
+                    if (lv != "medium") selfContent(ctx, lv, "source/$lv.js")?.let { js.run(it, "source/$lv.js") }
+                }
                 if (lv != "medium") c.button(tr("Solve the sum"), outlined = true) {
-                    res.clear(); res.info("GET source/" + (if (lv == "high") "jsonp.php?callback=solveSum" else "jsonp_impossible.php") + tr(" → solveSum({\"answer\":\"15\"})")); res.ok("1+2+3+4+5=15")
+                    js.fire("solve", "click")
+                    answer?.clear(); answer?.ok("1+2+3+4+5=" + js.eval("document.getElementById('answer').innerHTML"))
                 }
                 val t = c.tamper()
-                t.p(tr("High level: the include parameter is POSTed (field above). Same-origin sources include source/jsonp.php and /hackable/uploads/<file>."))
+                t.p(tr("The include parameter is POSTed and dropped into the page body. Same-origin sources include source/jsonp.php and /hackable/uploads/<file>."))
                 c.button(tr("Include")) {
+                    res.clear(); answer?.clear()
                     val html = inc.str()
-                    res.clear(); res.text(tr("Page body now contains:")); res.pre(html)
-                    val hits = Xss.scan(html)
-                    if (hits.isEmpty()) { res.ok(tr("No executable markup.")); return@button }
-                    val fired = ArrayList<Xss.Hit>()
-                    for (h in hits) {
-                        val why: String? = when {
-                            h.src != null -> if (isSelf(h.src) || (lv == "medium" && h.attrs.contains(NONCE))) null else tr("host not allowed by script-src")
-                            lv == "medium" && h.vector == "<script>" -> if (h.attrs.contains("nonce=\"$NONCE\"") || h.attrs.contains("nonce='$NONCE'") || h.attrs.contains("nonce=$NONCE")) null else tr("inline script without the right nonce ('unsafe-inline' is ignored when a nonce is present)")
-                            else -> tr("inline script/event handler blocked (no 'unsafe-inline')")
-                        }
-                        if (why != null) { res.warn(tr("🛡 Blocked by CSP: {0} — {1}", h.vector, why)); continue }
-                        val code = if (h.src != null) (selfContent(lv, h.src) ?: run { res.warn(tr("{0}: 404 Not Found (same-origin file does not exist)", h.src)); null }) else h.code
-                        if (code == null) continue
-                        if (h.src != null) res.info(tr("Loaded {0} → {1}", h.src, code))
-                        val eff = Xss.simulate(code)
-                        if (lv == "impossible" && code.startsWith("solveSum(")) { res.ok(tr("Script ran solveSum() only — callback is hard-coded, nothing injected.")); continue }
-                        fired += Xss.Hit(h.vector, code, true)
-                        res.err(tr("⚠ Script executed despite CSP (simulated)\n") + eff.joinToString("\n") { "  • $it" })
-                    }
-                    Xss.firstDialog(fired)?.let { OutBox.alert(f.requireContext(), "127.0.0.1 says", it) }
+                    res.text(tr("Page body now contains:")); res.pre(html)
+                    loadPage(f.requireContext(), html)
                 }
+                loadPage(f.requireContext(), null)
             }
         }
     }
